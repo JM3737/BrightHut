@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 80px 80px 80px;
-  background: linear-gradient(135deg, var(--bg-white) 60%, var(--primary-light) 100%);
+  background: linear-gradient(135deg, var(--bg-white) 55%, var(--primary-light) 100%);
   border-bottom: 1px solid var(--border);
   position: relative;
   overflow: hidden;
@@ -26,8 +26,8 @@
   display: inline-block;
   padding: 5px 14px;
   border-radius: 20px;
-  background: var(--secondary-light);
-  color: var(--secondary);
+  background: var(--accent-light);
+  color: var(--accent);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.4px;
@@ -105,7 +105,7 @@
   width: 480px;
   height: 480px;
   border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
-  background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+  background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
   opacity: 0.7;
 }
 
@@ -159,10 +159,11 @@
   transform: translateY(-3px);
 }
 
-.portal-card--green:hover  { border-color: var(--secondary); }
-.portal-card--blue:hover   { border-color: var(--primary); }
+/* Portal card accent colors — blue, red, gold, blue (flag colors) */
+.portal-card--green:hover  { border-color: var(--primary); }
+.portal-card--blue:hover   { border-color: var(--secondary); }
 .portal-card--sand:hover   { border-color: var(--accent); }
-.portal-card--teal:hover   { border-color: var(--primary); }
+.portal-card--teal:hover   { border-color: var(--primary-dark); }
 
 .portal-icon {
   font-size: 30px;
