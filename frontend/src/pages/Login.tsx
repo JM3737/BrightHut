@@ -17,7 +17,7 @@ export default function Login() {
         <div className="auth-header">
           <span className="auth-icon">✦</span>
           <h1>Welcome back</h1>
-          <p>Sign in to your BrightHutt account</p>
+          <p>Sign in to your BrightHut account</p>
         </div>
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="form-label">

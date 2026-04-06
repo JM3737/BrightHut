@@ -8,7 +8,7 @@ export default function Navbar() {
     <nav className="navbar">
       <Link to="/" className="navbar-brand">
         <span className="brand-icon">✦</span>
-        BrightHutt
+        BrightHut
       </Link>
       <div className="navbar-links">
         <Link to="/about" className="nav-link">About Us</Link>

@@ -4,7 +4,7 @@ import './Home.css'
 const portals = [
   {
     title: 'About Us',
-    description: 'Learn about our mission, values, and the people behind BrightHutt.',
+    description: 'Learn about our mission, values, and the people behind BrightHut.',
     icon: '🌿',
     path: '/about',
     color: 'green',
@@ -39,7 +39,7 @@ export default function Home() {
     <main className="home">
       <section className="hero">
         <div className="hero-content">
-          <span className="hero-tag">Welcome to BrightHutt</span>
+          <span className="hero-tag">Welcome to BrightHut</span>
           <h1 className="hero-title">
             Empowering communities,<br />
             <span className="hero-accent">one connection at a time.</span>
@@ -84,7 +84,7 @@ export default function Home() {
       </section>
 
       <footer className="footer">
-        <p>© 2025 BrightHutt. All rights reserved.</p>
+        <p>© 2025 BrightHut. All rights reserved.</p>
       </footer>
     </main>
   )

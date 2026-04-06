@@ -5,7 +5,7 @@ export default function AboutUs() {
     <PlaceholderPage
       icon="🌿"
       title="About Us"
-      description="Learn about our mission, values, and the people behind BrightHutt."
+      description="Learn about our mission, values, and the people behind BrightHut."
       color="green"
     />
   )
