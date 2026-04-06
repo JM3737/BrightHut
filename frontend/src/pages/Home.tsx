@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import DonationCallout from '../components/DonationCallout'
 import './Home.css'
 
 const portals = [
@@ -82,6 +83,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <DonationCallout />
 
       <footer className="footer">
         <p>
