@@ -18,8 +18,8 @@
   box-shadow: var(--shadow-md);
 }
 
-.placeholder-card--green { border-top: 4px solid var(--secondary); }
-.placeholder-card--blue  { border-top: 4px solid var(--primary); }
+.placeholder-card--green { border-top: 4px solid var(--primary); }
+.placeholder-card--blue  { border-top: 4px solid var(--secondary); }
 .placeholder-card--sand  { border-top: 4px solid var(--accent); }
 .placeholder-card--teal  { border-top: 4px solid var(--primary-dark); }
 
