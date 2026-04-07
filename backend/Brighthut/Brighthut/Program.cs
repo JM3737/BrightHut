@@ -5,6 +5,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var jwtKey = Environment.GetEnvironmentVariable("JWT__KEY")
+    ?? builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey)
+    || jwtKey.Contains("ChangeInProd", StringComparison.OrdinalIgnoreCase)
+    || jwtKey.Contains("REPLACE_ME", StringComparison.OrdinalIgnoreCase))
+{
+    throw new InvalidOperationException(
+        "JWT key is not configured securely. Set environment variable JWT__KEY to a strong secret.");
+}
+builder.Configuration["Jwt:Key"] = jwtKey;
+
 builder.Services.AddSingleton<SqliteDataService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -13,7 +24,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var key = builder.Configuration["Jwt:Key"]!;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -22,7 +32,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         };
     });
 builder.Services.AddAuthorization();
@@ -54,6 +64,16 @@ if (allowedOrigins.Length > 0)
 {
     app.UseCors();
 }
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["Content-Security-Policy"] =
+        "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none';";
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+
+    await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -22,14 +22,16 @@ public class AuthController : ControllerBase
     }
 
     // POST /api/auth/register
+    [AllowAnonymous]
     [HttpPost("register")]
     public IActionResult Register([FromBody] RegisterRequest req)
     {
         if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
             return BadRequest(new { error = "Email and password are required." });
 
-        if (req.Password.Length < 8)
-            return BadRequest(new { error = "Password must be at least 8 characters." });
+        var passwordError = ValidatePasswordPolicy(req.Password, req.Email);
+        if (passwordError is not null)
+            return BadRequest(new { error = passwordError });
 
         var hash = BCrypt.Net.BCrypt.HashPassword(req.Password);
 
@@ -73,7 +75,36 @@ public class AuthController : ControllerBase
         return Ok(new { token, role = "donor", email = req.Email.ToLower() });
     }
 
+    private static string? ValidatePasswordPolicy(string password, string email)
+    {
+        if (password.Length < 12)
+            return "Password must be at least 12 characters.";
+
+        if (!password.Any(char.IsUpper))
+            return "Password must include at least one uppercase letter.";
+
+        if (!password.Any(char.IsLower))
+            return "Password must include at least one lowercase letter.";
+
+        if (!password.Any(char.IsDigit))
+            return "Password must include at least one number.";
+
+        if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+            return "Password must include at least one special character.";
+
+        if (password.Any(char.IsWhiteSpace))
+            return "Password cannot contain spaces.";
+
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var localPart = normalizedEmail.Split('@')[0];
+        if (!string.IsNullOrWhiteSpace(localPart) && password.ToLowerInvariant().Contains(localPart))
+            return "Password cannot contain your email name.";
+
+        return null;
+    }
+
     // POST /api/auth/login
+    [AllowAnonymous]
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginRequest req)
     {
@@ -106,9 +137,25 @@ public class AuthController : ControllerBase
         return Ok(new { token, role, email = req.Email.ToLower() });
     }
 
-    // GET /api/auth/users  (staff only)
+    // GET /api/auth/me
+    [HttpGet("me")]
+    [Authorize]
+    public IActionResult Me()
+    {
+        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        var email = User.FindFirstValue(JwtRegisteredClaimNames.Email)
+            ?? User.FindFirstValue(ClaimTypes.Email);
+        var role = User.FindFirstValue(ClaimTypes.Role);
+
+        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(role))
+            return Unauthorized(new { error = "Invalid token claims." });
+
+        return Ok(new { userId, email, role });
+    }
+
+    // GET /api/auth/users  (staff/admin only)
     [HttpGet("users")]
-    [Authorize(Roles = "staff")]
+    [Authorize(Roles = "staff,admin")]
     public IActionResult GetUsers()
     {
         using var conn = new SqliteConnection(_connStr);

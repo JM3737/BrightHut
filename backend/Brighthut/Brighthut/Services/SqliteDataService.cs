@@ -103,6 +103,66 @@ public sealed class SqliteDataService
         return (long)(cmd.ExecuteScalar() ?? 0L);
     }
 
+    public IReadOnlyList<Dictionary<string, object?>> QuerySupporterByEmail(string email)
+    {
+        const string sql = @"
+            SELECT *
+            FROM supporters
+            WHERE lower(email) = @email;";
+
+        return QueryWithParameters(sql, parameters =>
+        {
+            parameters.AddWithValue("@email", email.Trim().ToLowerInvariant());
+        });
+    }
+
+    public IReadOnlyList<Dictionary<string, object?>> QueryDonationsBySupporterEmail(string email)
+    {
+        const string sql = @"
+            SELECT d.*
+            FROM donations d
+            INNER JOIN supporters s ON s.supporter_id = d.supporter_id
+            WHERE lower(s.email) = @email
+            ORDER BY d.donation_date DESC;";
+
+        return QueryWithParameters(sql, parameters =>
+        {
+            parameters.AddWithValue("@email", email.Trim().ToLowerInvariant());
+        });
+    }
+
+    public IReadOnlyList<Dictionary<string, object?>> QueryDonationAllocationsBySupporterEmail(string email)
+    {
+        const string sql = @"
+            SELECT a.*
+            FROM donation_allocations a
+            INNER JOIN donations d ON d.donation_id = a.donation_id
+            INNER JOIN supporters s ON s.supporter_id = d.supporter_id
+            WHERE lower(s.email) = @email
+            ORDER BY a.allocation_date DESC;";
+
+        return QueryWithParameters(sql, parameters =>
+        {
+            parameters.AddWithValue("@email", email.Trim().ToLowerInvariant());
+        });
+    }
+
+    public IReadOnlyList<Dictionary<string, object?>> QueryInKindItemsBySupporterEmail(string email)
+    {
+        const string sql = @"
+            SELECT i.*
+            FROM in_kind_donation_items i
+            INNER JOIN donations d ON d.donation_id = i.donation_id
+            INNER JOIN supporters s ON s.supporter_id = d.supporter_id
+            WHERE lower(s.email) = @email
+            ORDER BY d.donation_date DESC, i.item_id DESC;";
+
+        return QueryWithParameters(sql, parameters =>
+        {
+            parameters.AddWithValue("@email", email.Trim().ToLowerInvariant());
+        });
+    }
+
     public bool Update(string tableName, long id, Dictionary<string, object?> data)
     {
         if (!IsTableAllowed(tableName)) throw new ArgumentException("Unknown table.", nameof(tableName));
@@ -123,6 +183,47 @@ public sealed class SqliteDataService
         cmd.Parameters.AddWithValue("@id", id);
 
         return cmd.ExecuteNonQuery() > 0;
+    }
+
+    public bool Delete(string tableName, long id)
+    {
+        if (!IsTableAllowed(tableName)) throw new ArgumentException("Unknown table.", nameof(tableName));
+        EnsureDb();
+
+        var pk = GetPrimaryKey(tableName);
+
+        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"DELETE FROM {tableName} WHERE {pk} = @id";
+        cmd.Parameters.AddWithValue("@id", id);
+
+        return cmd.ExecuteNonQuery() > 0;
+    }
+
+    private IReadOnlyList<Dictionary<string, object?>> QueryWithParameters(
+        string sql,
+        Action<SqliteParameterCollection> bindParameters)
+    {
+        var results = new List<Dictionary<string, object?>>();
+        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = sql;
+        bindParameters(cmd.Parameters);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            var row = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < reader.FieldCount; i++)
+            {
+                row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+            }
+
+            results.Add(row);
+        }
+
+        return results;
     }
 
     private void EnsureDb()

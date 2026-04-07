@@ -13,6 +13,7 @@ import { getSafehouses } from '../api/safehouses'
 import { insertRow } from '../api/tables'
 import FormModal from '../components/FormModal'
 import type { FieldDef } from '../components/FormModal'
+import { deleteSupporter } from '../api/supporters'
 import './ParticipantsPortal.css'
 
 type Row = Record<string, unknown>
@@ -44,6 +45,9 @@ export default function ParticipantsPortal() {
   const [filterSafehouse, setFilterSafehouse] = useState('')
   const [showAddResident, setShowAddResident] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [deleteSupporterId, setDeleteSupporterId] = useState('')
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -216,6 +220,29 @@ export default function ParticipantsPortal() {
     }
   }
 
+  const handleDeleteSupporter = async () => {
+    const id = Number(deleteSupporterId)
+    if (!Number.isInteger(id) || id <= 0) {
+      setDeleteMessage('Enter a valid supporter ID (positive integer).')
+      return
+    }
+
+    const confirmed = window.confirm(`Delete supporter #${id}? This action cannot be undone.`)
+    if (!confirmed) return
+
+    setDeleting(true)
+    setDeleteMessage(null)
+    try {
+      await deleteSupporter(id)
+      setDeleteMessage(`Supporter #${id} deleted.`)
+      setDeleteSupporterId('')
+    } catch (err: unknown) {
+      setDeleteMessage(err instanceof Error ? err.message : 'Delete failed.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <main className="participants-page">
       {showAddResident && (
@@ -233,6 +260,22 @@ export default function ParticipantsPortal() {
           <h1>Participants Portal</h1>
           <p className="subtitle">Case management records</p>
         </div>
+      </div>
+
+      <div className="participants-controls">
+        <input
+          className="search-input"
+          type="number"
+          min={1}
+          step={1}
+          placeholder="Supporter ID to delete (staff/admin demo)"
+          value={deleteSupporterId}
+          onChange={(e) => setDeleteSupporterId(e.target.value)}
+        />
+        <button className="tab-btn" onClick={() => void handleDeleteSupporter()} disabled={deleting}>
+          {deleting ? 'Deleting…' : 'Delete supporter'}
+        </button>
+        {deleteMessage ? <span className="count">{deleteMessage}</span> : null}
       </div>
 
       <div className="tab-scroll">

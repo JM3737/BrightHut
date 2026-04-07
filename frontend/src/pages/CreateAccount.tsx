@@ -106,8 +106,35 @@ export default function CreateAccount() {
       setPasswordError('Passwords do not match.')
       return
     }
-    if (formData.password.length < 8) {
-      setPasswordError('Password must be at least 8 characters.')
+    if (formData.password.length < 12) {
+      setPasswordError('Password must be at least 12 characters.')
+      return
+    }
+    if (!/[A-Z]/.test(formData.password)) {
+      setPasswordError('Password must include at least one uppercase letter.')
+      return
+    }
+    if (!/[a-z]/.test(formData.password)) {
+      setPasswordError('Password must include at least one lowercase letter.')
+      return
+    }
+    if (!/[0-9]/.test(formData.password)) {
+      setPasswordError('Password must include at least one number.')
+      return
+    }
+    if (!/[^A-Za-z0-9]/.test(formData.password)) {
+      setPasswordError('Password must include at least one special character.')
+      return
+    }
+    if (/\s/.test(formData.password)) {
+      setPasswordError('Password cannot contain spaces.')
+      return
+    }
+    if (
+      formData.email &&
+      formData.password.toLowerCase().includes(formData.email.trim().toLowerCase().split('@')[0] ?? '')
+    ) {
+      setPasswordError('Password cannot contain your email name.')
       return
     }
     setPasswordError('')
@@ -264,7 +291,7 @@ export default function CreateAccount() {
                 className="form-input"
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder="At least 8 characters"
+                placeholder="12+ chars, upper/lower/number/symbol"
                 required
               />
             </label>

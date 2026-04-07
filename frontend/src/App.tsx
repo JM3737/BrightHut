@@ -16,11 +16,11 @@ import Impact from './pages/Impact'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Analytics from './pages/Analytics'
 
-function RequireAuth({ children, staffOnly = false }: { children: React.ReactNode; staffOnly?: boolean }) {
+function RequireAuth({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
   const token = localStorage.getItem('token')
-  const role = localStorage.getItem('role')
+  const role = (localStorage.getItem('role') ?? '').toLowerCase()
   if (!token) return <Navigate to="/login" replace />
-  if (staffOnly && role !== 'staff') return <Navigate to="/donors" replace />
+  if (roles && !roles.includes(role)) return <Navigate to="/" replace />
   return <>{children}</>
 }
 
@@ -39,12 +39,19 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Protected — must be logged in */}
-        <Route path="/dashboard" element={<RequireAuth staffOnly><AdminDashboard /></RequireAuth>} />
-        <Route path="/social" element={<RequireAuth staffOnly><SocialPortal /></RequireAuth>} />
-        <Route path="/donors" element={<RequireAuth>{localStorage.getItem('role') === 'staff' ? <DonorsPortal /> : <MyContributions />}</RequireAuth>} />
-        <Route path="/participants" element={<RequireAuth staffOnly><ParticipantsPortal /></RequireAuth>} />
-        <Route path="/participants/:id" element={<RequireAuth staffOnly><ResidentDetail /></RequireAuth>} />
-        <Route path="/analytics" element={<RequireAuth staffOnly><Analytics /></RequireAuth>} />
+        <Route path="/social" element={<RequireAuth roles={['staff', 'admin']}><SocialPortal /></RequireAuth>} />
+        <Route path="/dashboard" element={<RequireAuth roles={['staff', 'admin']}><AdminDashboard /></RequireAuth>} />
+        <Route
+          path="/donors"
+          element={
+            <RequireAuth roles={['donor', 'staff', 'admin']}>
+              {['staff', 'admin'].includes((localStorage.getItem('role') ?? '').toLowerCase()) ? <DonorsPortal /> : <MyContributions />}
+            </RequireAuth>
+          }
+        />
+        <Route path="/participants" element={<RequireAuth roles={['staff', 'admin']}><ParticipantsPortal /></RequireAuth>} />
+        <Route path="/participants/:id" element={<RequireAuth roles={['staff', 'admin']}><ResidentDetail /></RequireAuth>} />
+        <Route path="/analytics" element={<RequireAuth roles={['staff', 'admin']}><Analytics /></RequireAuth>} />
       </Routes>
       <CookieBanner />
     </BrowserRouter>

@@ -9,7 +9,16 @@ function authHeaders(): Record<string, string> {
 }
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, options);
+  const headers = new Headers(options?.headers ?? {})
+  const token = localStorage.getItem('token')
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers,
+  })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error ?? `API error ${res.status}: ${path}`);
