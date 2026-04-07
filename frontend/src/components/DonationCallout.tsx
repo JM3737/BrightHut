@@ -91,7 +91,11 @@ export default function DonationCallout() {
   }, [yearMonth])
 
   return (
-    <section className="donation-callout" aria-labelledby="donation-callout-title">
+    <section
+      id="donate"
+      className="donation-callout"
+      aria-labelledby="donation-callout-title"
+    >
       <div className="donation-callout-inner">
         <div className="donation-callout-intro">
           <h2 id="donation-callout-title">Help us keep every girl safe, seen, and supported</h2>

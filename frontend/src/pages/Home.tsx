@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import DonationCallout from '../components/DonationCallout'
 import './Home.css'
 
@@ -35,6 +36,19 @@ const portals = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Support links like /#donate
+  // Keeps the grid layout fixed; scrolls to the section the user asked for.
+  // (No-op if element doesn't exist.)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!location.hash) return
+    const id = location.hash.replace('#', '')
+    const el = document.getElementById(id)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [location.hash])
 
   return (
     <main className="home">
