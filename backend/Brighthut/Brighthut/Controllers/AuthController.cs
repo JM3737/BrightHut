@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.IdentityModel.Tokens;
@@ -103,6 +104,38 @@ public class AuthController : ControllerBase
 
         var token = GenerateToken(userId, req.Email.ToLower(), role);
         return Ok(new { token, role, email = req.Email.ToLower() });
+    }
+
+    // GET /api/auth/users  (staff only)
+    [HttpGet("users")]
+    [Authorize(Roles = "staff")]
+    public IActionResult GetUsers()
+    {
+        using var conn = new SqliteConnection(_connStr);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT user_id, email, role, first_name, last_name, organization_name, phone, country, region, supporter_type, created_at, is_active FROM users ORDER BY created_at DESC";
+        using var reader = cmd.ExecuteReader();
+        var users = new List<object>();
+        while (reader.Read())
+        {
+            users.Add(new
+            {
+                user_id         = reader.GetInt64(0),
+                email           = reader.IsDBNull(1)  ? null : reader.GetString(1),
+                role            = reader.IsDBNull(2)  ? null : reader.GetString(2),
+                first_name      = reader.IsDBNull(3)  ? null : reader.GetString(3),
+                last_name       = reader.IsDBNull(4)  ? null : reader.GetString(4),
+                organization    = reader.IsDBNull(5)  ? null : reader.GetString(5),
+                phone           = reader.IsDBNull(6)  ? null : reader.GetString(6),
+                country         = reader.IsDBNull(7)  ? null : reader.GetString(7),
+                region          = reader.IsDBNull(8)  ? null : reader.GetString(8),
+                supporter_type  = reader.IsDBNull(9)  ? null : reader.GetString(9),
+                created_at      = reader.IsDBNull(10) ? null : reader.GetString(10),
+                is_active       = reader.GetInt64(11) == 1,
+            });
+        }
+        return Ok(users);
     }
 
     private string GenerateToken(long userId, string email, string role)
