@@ -374,6 +374,26 @@ CREATE TABLE IF NOT EXISTS public_impact_snapshots (
   CONSTRAINT public_impact_snapshots_month_uk UNIQUE (snapshot_date)
 );
 
+-- ---------- Users (authentication) ----------
+
+CREATE TABLE IF NOT EXISTS users (
+  user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL CHECK(role IN ('staff', 'donor')),
+  first_name TEXT,
+  last_name TEXT,
+  organization_name TEXT,
+  phone TEXT,
+  country TEXT,
+  region TEXT,
+  relationship_type TEXT,
+  acquisition_channel TEXT,
+  supporter_type TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  is_active INTEGER NOT NULL DEFAULT 1
+);
+
 CREATE INDEX IF NOT EXISTS idx_partner_assignments_partner_id ON partner_assignments(partner_id);
 CREATE INDEX IF NOT EXISTS idx_partner_assignments_safehouse_id ON partner_assignments(safehouse_id);
 CREATE INDEX IF NOT EXISTS idx_donations_supporter_id ON donations(supporter_id);

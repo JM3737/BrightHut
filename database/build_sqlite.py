@@ -138,6 +138,14 @@ def main() -> None:
 
     print(f"Done: {DB_PATH} ({DB_PATH.stat().st_size} bytes)")
 
+    # Seed users (requires: pip install bcrypt)
+    print("\nSeeding users...")
+    try:
+        from seed_users import seed  # noqa: PLC0415
+        seed(DB_PATH)
+    except ImportError:
+        print("  Skipped (run 'python database/seed_users.py' separately after installing bcrypt)")
+
 
 if __name__ == "__main__":
     main()
