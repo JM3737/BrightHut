@@ -97,7 +97,7 @@ public class TablesController : ControllerBase
     }
 
     [HttpPost("tables/{tableName}")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,staff")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult InsertRow(string tableName, [FromBody] Dictionary<string, JsonElement> body)
@@ -139,7 +139,7 @@ public class TablesController : ControllerBase
     }
 
     [HttpDelete("tables/{tableName}/{id:long}")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,staff")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

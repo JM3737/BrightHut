@@ -257,8 +257,11 @@ export default function ParticipantsPortal() {
       <div className="participants-header">
         <button className="back-btn" onClick={() => navigate('/')}>← Back</button>
         <div>
-          <h1>Participants Portal</h1>
-          <p className="subtitle">Case management records</p>
+          <h1>Caseload inventory</h1>
+          <p className="subtitle">
+            Resident records, process notes, visitations, and plans — filter by status, safehouse, and category; open a
+            resident for full detail.
+          </p>
         </div>
       </div>
 

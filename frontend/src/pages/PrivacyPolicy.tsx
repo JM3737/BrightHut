@@ -51,11 +51,11 @@ export default function PrivacyPolicy() {
           complaint with your local data protection authority.
         </p>
 
-        <h2>7. Cookies</h2>
+        <h2>7. Cookies &amp; similar technologies</h2>
         <p>
-          BrightHut currently uses a consent cookie to remember your banner choice. This setup is
-          currently <strong>cosmetic</strong>: your Accept/Decline state is stored, but optional
-          analytics or marketing cookies are not yet conditionally enabled.
+          We set a small consent cookie (<code>brighthut_cookie_consent</code>) so we do not repeatedly show this banner.
+          <strong> Essential</strong> cookies are required for basic site operation. <strong>Optional</strong> analytics
+          cookies are only loaded if you choose Accept; if you Decline, we still run the site with essential cookies only.
         </p>
 
         <h2>8. Contact</h2>

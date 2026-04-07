@@ -226,6 +226,54 @@ public sealed class SqliteDataService
         return results;
     }
 
+    /// <summary>Look up the logged-in user's display names from the users table.</summary>
+    public (string? FirstName, string? LastName) GetUserNamesByEmail(string email)
+    {
+        EnsureDb();
+        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT first_name, last_name FROM users WHERE lower(email) = lower(@email) LIMIT 1;";
+        cmd.Parameters.AddWithValue("@email", email.Trim());
+        using var reader = cmd.ExecuteReader();
+        if (!reader.Read())
+            return (null, null);
+
+        string? fn = reader.IsDBNull(0) ? null : reader.GetString(0);
+        string? ln = reader.IsDBNull(1) ? null : reader.GetString(1);
+        return (fn, ln);
+    }
+
+    /// <summary>Find or create a MonetaryDonor supporter row for demo / self-service donations.</summary>
+    public long EnsureSupporterForDonorEmail(string email, string? firstName, string? lastName)
+    {
+        EnsureDb();
+        var normalized = email.Trim().ToLowerInvariant();
+        var existing = QuerySupporterByEmail(normalized);
+        if (existing.Count > 0)
+            return Convert.ToInt64(existing[0]["supporter_id"] ?? 0L);
+
+        var display = string.Join(
+            " ",
+            new[] { firstName, lastName }.Where(static s => !string.IsNullOrWhiteSpace(s)));
+        if (string.IsNullOrWhiteSpace(display))
+            display = normalized.Split('@')[0];
+
+        return Insert(
+            "supporters",
+            new Dictionary<string, object?>
+            {
+                ["supporter_type"] = "MonetaryDonor",
+                ["display_name"] = display,
+                ["first_name"] = firstName,
+                ["last_name"] = lastName,
+                ["relationship_type"] = "Local",
+                ["email"] = normalized,
+                ["status"] = "Active",
+                ["acquisition_channel"] = "Website",
+            });
+    }
+
     private void EnsureDb()
     {
         if (!File.Exists(_dbPath))

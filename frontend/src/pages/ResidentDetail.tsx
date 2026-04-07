@@ -257,7 +257,10 @@ export default function ResidentDetail() {
         <div className="rd-title-row">
           <div>
             <h1 className="rd-title">{String(resident.internal_code ?? '—')}</h1>
-            <p className="rd-subtitle">Case #{String(resident.case_control_no ?? '—')} · {safehouseName}</p>
+            <p className="rd-subtitle">
+              Case #{String(resident.case_control_no ?? '—')} · {safehouseName} — process recordings, home visitations,
+              and case conferences are documented below.
+            </p>
           </div>
           <div className="rd-badges">
             <Badge text={String(resident.case_status ?? '—')} />

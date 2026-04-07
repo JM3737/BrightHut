@@ -41,8 +41,10 @@ export default function CookieBanner() {
   return (
     <section className="cookie-banner" aria-label="Cookie consent">
       <p className="cookie-banner__text">
-        We use essential cookies to keep BrightHut working and optional cookies to improve experience.
-        Read our <Link to="/privacy">Privacy Policy</Link> for details.
+        We use strictly necessary cookies for security and session continuity. With your consent we may also enable
+        optional analytics to understand how the site is used. You can change your mind anytime — see our{' '}
+        <Link to="/privacy">Privacy Policy</Link> for lawful bases under the GDPR (including consent and legitimate
+        interests).
       </p>
       <div className="cookie-banner__actions">
         <button

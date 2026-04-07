@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSupporters } from '../api/supporters'
 import { getDonations, getDonationAllocations } from '../api/donations'
+import { createDonorDemoDonation } from '../api/donor'
 import { phpToUsd, formatUsd } from '../components/donationProgress'
 import './MyContributions.css'
 
@@ -23,8 +24,17 @@ export default function MyContributions() {
   const [allocations, setAllocations] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const [giftUsd, setGiftUsd] = useState('50')
+  const [giftNote, setGiftNote] = useState('')
+  const [giftSubmitting, setGiftSubmitting] = useState(false)
+  const [giftMsg, setGiftMsg] = useState<string | null>(null)
+  const [giftErr, setGiftErr] = useState<string | null>(null)
 
   useEffect(() => {
+    setLoading(true)
+    setError(null)
     Promise.all([getSupporters(), getDonations(), getDonationAllocations()])
       .then(([s, d, a]) => {
         setSupporters(s)
@@ -33,7 +43,7 @@ export default function MyContributions() {
       })
       .catch(() => setError('Could not load your contribution data.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [refreshKey])
 
   // Match logged-in user to a supporter record by email
   const supporter = useMemo(
@@ -67,6 +77,38 @@ export default function MyContributions() {
     return Object.entries(map).sort((a, b) => b[1] - a[1])
   }, [myAllocations])
 
+  const handleDemoGift = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setGiftErr(null)
+    setGiftMsg(null)
+    const n = parseFloat(giftUsd.replace(/,/g, ''))
+    if (!Number.isFinite(n) || n <= 0) {
+      setGiftErr('Enter a valid amount in USD.')
+      return
+    }
+    if (n > 1_000_000) {
+      setGiftErr('Amount is too large for a demo gift.')
+      return
+    }
+    setGiftSubmitting(true)
+    try {
+      const res = await createDonorDemoDonation({
+        amountUsd: n,
+        notes: giftNote.trim() || undefined,
+        campaignName: 'Donor Dashboard',
+      })
+      setGiftMsg(
+        `Recorded ${formatUsd(res.amount_usd)} (stored as ₱${Math.round(res.amount_php).toLocaleString()}). Thank you!`
+      )
+      setGiftNote('')
+      setRefreshKey((k) => k + 1)
+    } catch (err) {
+      setGiftErr(err instanceof Error ? err.message : 'Could not record your gift.')
+    } finally {
+      setGiftSubmitting(false)
+    }
+  }
+
   if (loading) return <main className="my-contributions"><p className="mc-loading">Loading your contributions…</p></main>
   if (error) return <main className="my-contributions"><p className="mc-error">{error}</p></main>
 
@@ -74,8 +116,11 @@ export default function MyContributions() {
     <main className="my-contributions">
       <div className="mc-header">
         <button className="mc-back" onClick={() => window.history.back()}>← Back to Portal</button>
-        <h1>My Contributions</h1>
-        <p className="mc-subhead">Welcome back, <strong>{supporter ? String(supporter.first_name ?? firstName) : firstName}</strong>. Here's your giving history.</p>
+        <h1>Donor dashboard</h1>
+        <p className="mc-subhead">
+          Welcome back, <strong>{supporter ? String(supporter.first_name ?? firstName) : firstName}</strong>. Review your
+          history and record a demo gift (no real payment).
+        </p>
       </div>
 
       {/* Summary cards */}
@@ -102,74 +147,119 @@ export default function MyContributions() {
         </div>
       </div>
 
-      <button className="mc-donate-btn" onClick={() => navigate('/#donate')}>Make a Donation</button>
+      <div className="mc-actions-row">
+        <button type="button" className="mc-donate-btn mc-donate-btn--secondary" onClick={() => navigate('/#donate')}>
+          Public donation goal
+        </button>
+      </div>
+
+      <section className="mc-gift-card" aria-labelledby="mc-gift-heading">
+        <h2 id="mc-gift-heading">Record a demo gift</h2>
+        <p className="mc-gift-lead">
+          This does not charge a real card — it saves a monetary gift to our database so you can see your history update
+          instantly (amounts are stored in Philippine pesos using the same rate as the rest of the site).
+        </p>
+        <form className="mc-gift-form" onSubmit={handleDemoGift}>
+          <label className="mc-gift-label">
+            Amount (USD)
+            <input
+              type="text"
+              inputMode="decimal"
+              className="mc-gift-input"
+              value={giftUsd}
+              onChange={(e) => setGiftUsd(e.target.value)}
+              autoComplete="off"
+            />
+          </label>
+          <label className="mc-gift-label mc-gift-label--full">
+            Note (optional)
+            <input
+              type="text"
+              className="mc-gift-input"
+              value={giftNote}
+              onChange={(e) => setGiftNote(e.target.value)}
+              placeholder="In honor of…"
+            />
+          </label>
+          <button type="submit" className="mc-gift-submit" disabled={giftSubmitting}>
+            {giftSubmitting ? 'Saving…' : 'Save gift to database'}
+          </button>
+        </form>
+        {giftErr ? (
+          <p className="mc-gift-feedback mc-gift-feedback--error" role="alert">
+            {giftErr}
+          </p>
+        ) : null}
+        {giftMsg ? <p className="mc-gift-feedback mc-gift-feedback--ok">{giftMsg}</p> : null}
+      </section>
 
       {!supporter ? (
-        <div className="mc-empty">
-          <p>No contribution records found for <strong>{email}</strong>.</p>
-          <p className="mc-empty-sub">Once your account is linked to a donation, your history will appear here.</p>
+        <div className="mc-empty mc-empty--soft">
+          <p>
+            No supporter profile was on file for <strong>{email}</strong> yet — use &quot;Record a demo gift&quot; above to
+            create one and see your giving history below.
+          </p>
         </div>
-      ) : (
-        <>
-          {/* Donation history */}
-          <section className="mc-section">
-            <h2>Donation History</h2>
-            {myDonations.length === 0 ? (
-              <p className="mc-empty-sub">No donations on record yet.</p>
-            ) : (
-              <div className="mc-table-wrap">
-                <table className="mc-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Type</th>
-                      <th>Amount</th>
-                      <th>Currency</th>
-                      <th>Channel</th>
-                      <th>Campaign</th>
-                      <th>Recurring</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {myDonations.map((d) => (
-                      <tr key={String(d.donation_id)}>
-                        <td>{String(d.donation_date).slice(0, 10)}</td>
-                        <td>{String(d.donation_type ?? '—')}</td>
-                        <td>{d.amount != null ? fmt(d.amount) : '—'}</td>
-                        <td>{String(d.currency_code ?? '—')}</td>
-                        <td>{String(d.channel_source ?? '—')}</td>
-                        <td>{String(d.campaign_name ?? '—')}</td>
-                        <td>{d.is_recurring ? 'Yes' : 'No'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
+      ) : null}
 
-          {/* Where your money goes */}
-          {allocationsByArea.length > 0 && (
-            <section className="mc-section">
-              <h2>Where Your Gifts Go</h2>
-              <div className="mc-allocations">
-                {allocationsByArea.map(([area, amount]) => (
-                  <div key={area} className="mc-allocation-row">
-                    <span className="mc-allocation-label">{area}</span>
-                    <div className="mc-allocation-bar-wrap">
-                      <div
-                        className="mc-allocation-bar"
-                        style={{ width: `${Math.min(100, (amount / totalGiven) * 100)}%` }}
-                      />
-                    </div>
-                    <span className="mc-allocation-amount">{fmt(amount)}</span>
-                  </div>
+      {/* Donation history */}
+      <section className="mc-section">
+        <h2>Donation History</h2>
+        {myDonations.length === 0 ? (
+          <p className="mc-empty-sub">No donations on record yet — add a demo gift above.</p>
+        ) : (
+          <div className="mc-table-wrap">
+            <table className="mc-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Currency</th>
+                  <th>Channel</th>
+                  <th>Campaign</th>
+                  <th>Recurring</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myDonations.map((d) => (
+                  <tr key={String(d.donation_id)}>
+                    <td>{String(d.donation_date).slice(0, 10)}</td>
+                    <td>{String(d.donation_type ?? '—')}</td>
+                    <td>{d.amount != null ? fmt(d.amount) : '—'}</td>
+                    <td>{String(d.currency_code ?? '—')}</td>
+                    <td>{String(d.channel_source ?? '—')}</td>
+                    <td>{String(d.campaign_name ?? '—')}</td>
+                    <td>{d.is_recurring ? 'Yes' : 'No'}</td>
+                  </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {supporter && allocationsByArea.length > 0 ? (
+        <section className="mc-section">
+          <h2>Where Your Gifts Go</h2>
+          <div className="mc-allocations">
+            {allocationsByArea.map(([area, amount]) => (
+              <div key={area} className="mc-allocation-row">
+                <span className="mc-allocation-label">{area}</span>
+                <div className="mc-allocation-bar-wrap">
+                  <div
+                    className="mc-allocation-bar"
+                    style={{
+                      width: `${Math.min(100, totalGiven > 0 ? (amount / totalGiven) * 100 : 0)}%`,
+                    }}
+                  />
+                </div>
+                <span className="mc-allocation-amount">{fmt(amount)}</span>
               </div>
-            </section>
-          )}
-        </>
-      )}
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   )
 }

@@ -204,7 +204,7 @@ export default function DonorsPortal() {
       <div className="donors-header">
         <button className="back-btn" onClick={() => navigate('/')}>← Back</button>
         <div>
-          <h1>Donors Portal</h1>
+          <h1>Donors &amp; contributions</h1>
           <p className="subtitle">Donations, supporters, and partner records</p>
         </div>
       </div>

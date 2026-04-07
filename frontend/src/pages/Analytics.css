@@ -28,6 +28,54 @@
   font-size: 14px;
 }
 
+.an-card--pillars {
+  background: linear-gradient(180deg, var(--bg-white) 0%, var(--primary-light) 100%);
+}
+
+.an-pillar-intro {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.an-pillars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.an-pillar {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+.an-pillar-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--secondary);
+}
+
+.an-pillar-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  line-height: 1.1;
+}
+
+.an-pillar-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 /* KPI row */
 .an-kpis {
   display: grid;

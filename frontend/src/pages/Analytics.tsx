@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getResidents, getEducationRecords, getHealthRecords, getInterventionPlans, getIncidentReports } from '../api/residents'
+import {
+  getResidents,
+  getEducationRecords,
+  getHealthRecords,
+  getInterventionPlans,
+  getIncidentReports,
+  getProcessRecordings,
+  getHomeVisitations,
+} from '../api/residents'
 import { getDonations } from '../api/donations'
 import { getSafehouses } from '../api/safehouses'
 import { phpToUsd, formatUsd } from '../components/donationProgress'
@@ -31,17 +39,33 @@ export default function Analytics() {
   const [health, setHealth] = useState<Row[]>([])
   const [plans, setPlans] = useState<Row[]>([])
   const [incidents, setIncidents] = useState<Row[]>([])
+  const [processRecs, setProcessRecs] = useState<Row[]>([])
+  const [visitations, setVisitations] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
-      getResidents(), getDonations(), getSafehouses(),
-      getEducationRecords(), getHealthRecords(), getInterventionPlans(), getIncidentReports(),
+      getResidents(),
+      getDonations(),
+      getSafehouses(),
+      getEducationRecords(),
+      getHealthRecords(),
+      getInterventionPlans(),
+      getIncidentReports(),
+      getProcessRecordings(),
+      getHomeVisitations(),
     ])
-      .then(([r, d, s, edu, hlt, pl, inc]) => {
-        setResidents(r); setDonations(d); setSafehouses(s)
-        setEducation(edu); setHealth(hlt); setPlans(pl); setIncidents(inc)
+      .then(([r, d, s, edu, hlt, pl, inc, pr, vis]) => {
+        setResidents(r)
+        setDonations(d)
+        setSafehouses(s)
+        setEducation(edu)
+        setHealth(hlt)
+        setPlans(pl)
+        setIncidents(inc)
+        setProcessRecs(pr)
+        setVisitations(vis)
       })
       .catch(() => setError('Failed to load analytics data.'))
       .finally(() => setLoading(false))
@@ -167,6 +191,30 @@ export default function Analytics() {
       </div>
 
       <div className="an-grid">
+        <section className="an-card an-card--full an-card--pillars">
+          <h2>Annual accomplishment framing (DSWD-style snapshot)</h2>
+          <p className="an-pillar-intro">
+            Grouped counts from your operational data — aligned with common “caring / healing / teaching” program
+            reporting.
+          </p>
+          <div className="an-pillars">
+            <div className="an-pillar">
+              <span className="an-pillar-label">Caring (shelter &amp; field)</span>
+              <span className="an-pillar-value">{visitations.length}</span>
+              <span className="an-pillar-sub">home &amp; field visits logged</span>
+            </div>
+            <div className="an-pillar">
+              <span className="an-pillar-label">Healing (counseling)</span>
+              <span className="an-pillar-value">{processRecs.length}</span>
+              <span className="an-pillar-sub">process recordings on file</span>
+            </div>
+            <div className="an-pillar">
+              <span className="an-pillar-label">Teaching (education)</span>
+              <span className="an-pillar-value">{education.length}</span>
+              <span className="an-pillar-sub">education progress records</span>
+            </div>
+          </div>
+        </section>
 
         {/* Donation Trends */}
         <section className="an-card an-card--full">

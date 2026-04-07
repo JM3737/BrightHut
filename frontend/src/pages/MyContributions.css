@@ -50,6 +50,26 @@
   opacity: 0.88;
 }
 
+.mc-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.mc-donate-btn--secondary {
+  width: auto;
+  flex: 1;
+  min-width: 200px;
+  background: var(--bg-white);
+  color: var(--primary-dark);
+  border: 2px solid var(--primary);
+}
+
+.mc-donate-btn--secondary:hover {
+  background: var(--primary-light);
+}
+
 .mc-header h1 {
   font-size: 28px;
   font-weight: 700;
@@ -199,4 +219,101 @@
   font-size: 13px;
   color: var(--text-muted);
   text-align: right;
+}
+
+/* Demo gift (donor dashboard) */
+.mc-gift-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px 28px;
+  margin-bottom: 36px;
+  box-shadow: var(--shadow-sm);
+}
+
+.mc-gift-card h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin: 0 0 8px;
+}
+
+.mc-gift-lead {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.mc-gift-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 16px;
+  align-items: flex-end;
+}
+
+.mc-gift-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mc-gift-label--full {
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+
+.mc-gift-input {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.mc-gift-submit {
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--secondary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.mc-gift-submit:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.mc-gift-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.mc-gift-feedback {
+  margin: 14px 0 0;
+  font-size: 14px;
+}
+
+.mc-gift-feedback--error {
+  color: #b91c1c;
+}
+
+.mc-gift-feedback--ok {
+  color: var(--secondary);
+  font-weight: 500;
+}
+
+.mc-empty--soft {
+  padding: 24px 20px;
+  background: var(--accent-light);
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  margin-bottom: 32px;
+  text-align: left;
 }

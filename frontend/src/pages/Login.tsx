@@ -37,7 +37,7 @@ export default function Login() {
         <div className="auth-header">
           <img src={brandLogo} alt="BrightHut logo" className="auth-icon" />
           <h1>Welcome back</h1>
-          <p>Sign in to your BrightHut account</p>
+          <p>Sign in with your email and password — we use your email as your username.</p>
         </div>
         {formError ? (
           <p className="auth-alert auth-alert--error" role="alert">
