@@ -106,9 +106,9 @@ public class AuthController : ControllerBase
         return Ok(new { token, role, email = req.Email.ToLower() });
     }
 
-    // GET /api/auth/users  (temporarily public for debugging)
+    // GET /api/auth/users  (staff only)
     [HttpGet("users")]
-    [AllowAnonymous]
+    [Authorize(Roles = "staff")]
     public IActionResult GetUsers()
     {
         using var conn = new SqliteConnection(_connStr);
