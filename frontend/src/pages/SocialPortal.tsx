@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSocialMediaPosts } from '../api/social'
 import './SocialPortal.css'
@@ -13,6 +13,7 @@ export default function SocialPortal() {
   const [search, setSearch] = useState('')
   const [platformFilter, setPlatformFilter] = useState('All')
   const [visible, setVisible] = useState(6)
+  const [activePost, setActivePost] = useState<Post | null>(null)
 
   useEffect(() => {
     getSocialMediaPosts()
@@ -35,6 +36,13 @@ export default function SocialPortal() {
 
   const totalReach = posts.reduce((sum, p) => sum + Number(p.reach ?? 0), 0)
   const totalEngagement = posts.reduce((sum, p) => sum + Number(p.likes ?? 0) + Number(p.comments ?? 0) + Number(p.shares ?? 0), 0)
+
+  const activeCaption = useMemo(() => String(activePost?.caption ?? ''), [activePost])
+  const activeUrl = useMemo(() => String(activePost?.post_url ?? ''), [activePost])
+  const activePlatform = useMemo(() => String(activePost?.platform ?? '—'), [activePost])
+  const activeDate = useMemo(() => String(activePost?.created_at ?? '—').split('T')[0], [activePost])
+  const activeType = useMemo(() => String(activePost?.post_type ?? '—'), [activePost])
+  const activeTopic = useMemo(() => String(activePost?.content_topic ?? '—'), [activePost])
 
   return (
     <main className="social-page">
@@ -81,13 +89,19 @@ export default function SocialPortal() {
       {!loading && !error && (
         <div className="posts-grid">
           {filtered.slice(0, visible).map((p, i) => (
-            <div key={i} className="post-card">
+            <button
+              key={i}
+              type="button"
+              className="post-card"
+              onClick={() => setActivePost(p)}
+              aria-label={`Open ${String(p.platform ?? 'social')} post details`}
+            >
               <div className="post-card-header">
                 <span className={`platform-badge platform-${String(p.platform ?? '').toLowerCase()}`}>{String(p.platform ?? '—')}</span>
                 <span className="post-date">{String(p.created_at ?? '—').split('T')[0]}</span>
               </div>
               <div className="post-card-body">
-                {!!p.caption && <p className="post-caption">{String(p.caption).slice(0, 120)}{String(p.caption).length > 120 ? '...' : ''}</p>}
+                {!!p.caption && <p className="post-caption">{String(p.caption)}</p>}
                 <div className="post-meta">
                   <span className="meta-tag">{String(p.post_type ?? '—')}</span>
                   <span className="meta-tag">{String(p.content_topic ?? '—')}</span>
@@ -100,7 +114,7 @@ export default function SocialPortal() {
                   <span>👁 {Number(p.reach ?? 0).toLocaleString()}</span>
                 </div>
               </div>
-            </div>
+            </button>
           ))}
           {filtered.length === 0 && <p className="state-msg">No posts match your search.</p>}
         </div>
@@ -110,6 +124,51 @@ export default function SocialPortal() {
           <button className="load-more-btn" onClick={() => setVisible((v) => v + 12)}>
             See 12 more ({filtered.length - visible} remaining)
           </button>
+        </div>
+      )}
+
+      {activePost && (
+        <div
+          className="post-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Post details"
+          onClick={() => setActivePost(null)}
+        >
+          <div className="post-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="post-modal-header">
+              <div className="post-modal-title">
+                <span className={`platform-badge platform-${activePlatform.toLowerCase()}`}>{activePlatform}</span>
+                <span className="post-date">{activeDate}</span>
+              </div>
+              <button
+                type="button"
+                className="post-modal-close"
+                onClick={() => setActivePost(null)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="post-modal-body">
+              <div className="post-meta">
+                <span className="meta-tag">{activeType}</span>
+                <span className="meta-tag">{activeTopic}</span>
+                {!!activePost.is_boosted && <span className="meta-tag boosted">Boosted</span>}
+              </div>
+
+              {activeCaption ? <p className="post-modal-caption">{activeCaption}</p> : null}
+
+              {activeUrl ? (
+                <a className="post-modal-link" href={activeUrl} target="_blank" rel="noreferrer">
+                  Open post ↗
+                </a>
+              ) : (
+                <p className="post-modal-link post-modal-link--muted">No link available for this post.</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </main>

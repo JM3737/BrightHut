@@ -98,6 +98,21 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  transition: box-shadow 0.25s, transform 0.2s, border-color 0.25s;
+}
+
+.post-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
+  border-color: var(--primary);
+}
+
+.post-card:focus-visible {
+  outline: 3px solid rgba(74, 111, 168, 0.25);
+  outline-offset: 2px;
 }
 
 .post-card-header {
@@ -139,6 +154,10 @@
   font-size: 0.88rem;
   color: var(--text);
   line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .post-meta { display: flex; gap: 0.4rem; flex-wrap: wrap; }
@@ -177,3 +196,90 @@
   cursor: pointer;
 }
 .load-more-btn:hover { background: var(--primary-light); }
+
+/* ── Modal ───────────────────────────────── */
+.post-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+}
+
+.post-modal {
+  width: min(720px, 100%);
+  background: var(--bg-white);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.post-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--primary-light);
+  border-bottom: 1px solid var(--border);
+}
+
+.post-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.post-modal-close {
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.post-modal-close:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.post-modal-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.post-modal-caption {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.post-modal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.post-modal-link:hover {
+  text-decoration: underline;
+}
+
+.post-modal-link--muted {
+  color: var(--text-muted);
+  font-weight: 500;
+}
