@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getSupporters } from '../api/supporters'
+import { submitDonation } from '../api/tables'
 import { formatUsd } from '../components/donationProgress'
 import './DonatePaymentPage.css'
 
@@ -41,6 +42,25 @@ export default function DonatePaymentPage() {
   const note = state.note
 
   const loggedInEmail = localStorage.getItem('email')
+
+  const [paying, setPaying] = useState(false)
+  const [payError, setPayError] = useState<string | null>(null)
+  const [paid, setPaid] = useState(false)
+
+  const handlePay = async () => {
+    if (!amountUsd) return
+    setPaying(true)
+    setPayError(null)
+    try {
+      await submitDonation(amountUsd, note)
+      setPaid(true)
+      setTimeout(() => navigate('/donors'), 2000)
+    } catch (err) {
+      setPayError(err instanceof Error ? err.message : 'Payment failed.')
+    } finally {
+      setPaying(false)
+    }
+  }
 
   const [donorKind, setDonorKind] = useState<DonorKind>('individual')
   const [firstName, setFirstName] = useState('')
@@ -134,10 +154,22 @@ export default function DonatePaymentPage() {
               {loggedInEmail ? (
                 <div className="donate-payment-alert donate-payment-alert--success" role="status">
                   <strong>Signed in as {loggedInEmail}</strong>
-                  <p>Your account has been recognized. You can complete the placeholder payment below.</p>
-                  <button type="button" className="donate-payment-fake-pay" disabled>
-                    Pay {formatUsd(amountUsd ?? 0)} (coming soon)
-                  </button>
+                  {paid ? (
+                    <p>Payment recorded! Redirecting to your contributions…</p>
+                  ) : (
+                    <>
+                      <p>Your account has been recognized. Click below to record your donation.</p>
+                      {payError && <p style={{ color: '#e53e3e', fontSize: '0.9rem' }}>{payError}</p>}
+                      <button
+                        type="button"
+                        className="donate-payment-fake-pay"
+                        onClick={() => void handlePay()}
+                        disabled={paying}
+                      >
+                        {paying ? 'Processing…' : `Donate ${formatUsd(amountUsd ?? 0)}`}
+                      </button>
+                    </>
+                  )}
                 </div>
               ) : (
               <>
