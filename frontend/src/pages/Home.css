@@ -136,6 +136,11 @@
   flex: 1;
 }
 
+.portals-section--donor {
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
+
 .portals-header {
   text-align: center;
   margin-bottom: 48px;
@@ -158,6 +163,11 @@
   gap: 24px;
   max-width: 1040px;
   margin: 0 auto;
+}
+
+.portals-grid--single {
+  grid-template-columns: 1fr;
+  max-width: 560px;
 }
 
 .portal-card {
@@ -216,6 +226,25 @@
 
 .portal-card:hover .portal-arrow {
   transform: translateX(4px);
+}
+
+.portal-card--featured {
+  border-left: 4px solid var(--primary);
+  padding: 36px 32px;
+}
+
+.portal-card--featured .portal-title {
+  font-size: 22px;
+}
+
+.portal-card--featured .portal-desc {
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+.portal-card--featured .portal-arrow {
+  font-size: 15px;
+  font-weight: 600;
 }
 
 /* ── Footer ───────────────────────────────── */

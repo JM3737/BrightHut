@@ -44,7 +44,12 @@ export default function Home() {
     ? privatePortals
     : privatePortals
         .filter((p) => p.path === '/donors')
-        .map((p) => ({ ...p, title: 'My Contributions' }))
+        .map((p) => ({
+          ...p,
+          title: 'My Contributions',
+          description: 'Track your giving history, see how your gifts are allocated across program areas, and measure your total impact.',
+          icon: '',
+        }))
 
   // Support links like /#donate
   // Keeps the grid layout fixed; scrolls to the section the user asked for.
@@ -125,26 +130,24 @@ export default function Home() {
       </section>
 
       {loggedIn && (
-        <section className="portals-section">
-          <div className="portals-header">
-            <h2>{isStaffLike ? 'Where would you like to go?' : 'Access My Donation History'}</h2>
-            <p className="portals-subtitle">
-              {isStaffLike
-                ? 'Select a portal to get started'
-                : 'View your contributions and see the impact of your giving'}
-            </p>
-          </div>
-          <div className="portals-grid">
+        <section className={'portals-section' + (!isStaffLike ? ' portals-section--donor' : '')}>
+          {isStaffLike && (
+            <div className="portals-header">
+              <h2>Where would you like to go?</h2>
+              <p className="portals-subtitle">Select a portal to get started</p>
+            </div>
+          )}
+          <div className={isStaffLike ? 'portals-grid' : 'portals-grid portals-grid--single'}>
             {portals.map((portal) => (
               <button
                 key={portal.path}
-                className={`portal-card portal-card--${portal.color}`}
+                className={`portal-card portal-card--${portal.color}${!isStaffLike ? ' portal-card--featured' : ''}`}
                 onClick={() => navigate(portal.path)}
               >
-                <span className="portal-icon">{portal.icon}</span>
+                {portal.icon && <span className="portal-icon">{portal.icon}</span>}
                 <h3 className="portal-title">{portal.title}</h3>
                 <p className="portal-desc">{portal.description}</p>
-                <span className="portal-arrow">→</span>
+                <span className="portal-arrow">View now →</span>
               </button>
             ))}
           </div>
