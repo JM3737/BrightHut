@@ -64,9 +64,10 @@ export default function Home() {
   }, [location.hash])
 
   const storedFirst = localStorage.getItem('firstName')
+  const emailFallback = (localStorage.getItem('email')?.split('@')[0] ?? 'there').split(/[._\-]/)[0]
   const donorName = storedFirst
     ? storedFirst
-    : (localStorage.getItem('email')?.split('@')[0] ?? 'there')
+    : emailFallback.charAt(0).toUpperCase() + emailFallback.slice(1)
 
   return (
     <main className="home">
