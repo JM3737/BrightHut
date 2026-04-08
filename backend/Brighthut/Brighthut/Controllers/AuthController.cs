@@ -179,21 +179,48 @@ public class AuthController : ControllerBase
         using var conn = _factory.CreateConnection();
         conn.Open();
 
+        // Step 1: core login check — only columns guaranteed to exist
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT user_id, password_hash, role, is_active, first_name, two_factor_enabled, two_factor_secret FROM users WHERE email = @email";
-    DbConnectionFactory.Bind(cmd, "@email", req.Email.ToLower());
+        cmd.CommandText = "SELECT user_id, password_hash, role, is_active, first_name FROM users WHERE email = @email";
+        DbConnectionFactory.Bind(cmd, "@email", req.Email.ToLower());
 
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read())
-            return Unauthorized(new { error = "Invalid email or password." });
+        long userId;
+        string storedHash;
+        string role;
+        long isActive;
+        string? firstName;
 
-        var userId = Convert.ToInt64(reader.GetValue(0));
-        var storedHash = reader.GetString(1);
-        var role = reader.GetString(2);
-        var isActive = Convert.ToInt64(reader.GetValue(3));
-        var firstName = reader.IsDBNull(4) ? null : reader.GetString(4);
-        var twoFactorEnabled = !reader.IsDBNull(5) && reader.GetInt64(5) == 1;
-        var twoFactorSecret = reader.IsDBNull(6) ? null : reader.GetString(6);
+        using (var reader = cmd.ExecuteReader())
+        {
+            if (!reader.Read())
+                return Unauthorized(new { error = "Invalid email or password." });
+
+            userId = Convert.ToInt64(reader.GetValue(0));
+            storedHash = reader.GetString(1);
+            role = reader.GetString(2);
+            isActive = Convert.ToInt64(reader.GetValue(3));
+            firstName = reader.IsDBNull(4) ? null : reader.GetString(4);
+        }
+
+        // Step 2: try to read 2FA columns (may not exist yet in SQL Server)
+        bool twoFactorEnabled = false;
+        string? twoFactorSecret = null;
+        try
+        {
+            using var tfCmd = conn.CreateCommand();
+            tfCmd.CommandText = "SELECT two_factor_enabled, two_factor_secret FROM users WHERE user_id = @id";
+            DbConnectionFactory.Bind(tfCmd, "@id", userId);
+            using var tfReader = tfCmd.ExecuteReader();
+            if (tfReader.Read())
+            {
+                twoFactorEnabled = !tfReader.IsDBNull(0) && Convert.ToInt64(tfReader.GetValue(0)) == 1;
+                twoFactorSecret = tfReader.IsDBNull(1) ? null : tfReader.GetString(1);
+            }
+        }
+        catch
+        {
+            // 2FA columns not yet in DB — treat as disabled
+        }
 
         if (isActive == 0)
             return Unauthorized(new { error = "Account is inactive." });
