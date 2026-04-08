@@ -42,7 +42,9 @@ export default function Home() {
   const isStaffLike = role === 'staff' || role === 'admin'
   const portals = isStaffLike
     ? privatePortals
-    : privatePortals.filter((p) => ['/donors', '/social'].includes(p.path))
+    : privatePortals
+        .filter((p) => p.path === '/donors')
+        .map((p) => ({ ...p, title: 'My Contributions' }))
 
   // Support links like /#donate
   // Keeps the grid layout fixed; scrolls to the section the user asked for.
