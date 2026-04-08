@@ -59,6 +59,11 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
         ...options,
         headers,
       })
+      // Treat gateway/proxy errors as retryable (e.g. local backend not running)
+      if (res.status === 502 || res.status === 503 || res.status === 504) {
+        lastNetworkError = new Error(`${res.status} ${res.statusText}`)
+        continue
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         throw new Error(parseApiError(body, res.status, path))
