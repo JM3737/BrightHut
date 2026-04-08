@@ -72,7 +72,7 @@ public class AuthController : ControllerBase
         var newId = (long)(cmd.ExecuteScalar() ?? 0L);
         var token = GenerateToken(newId, req.Email.ToLower(), "donor");
 
-        return Ok(new { token, role = "donor", email = req.Email.ToLower() });
+        return Ok(new { token, role = "donor", email = req.Email.ToLower(), firstName = req.FirstName });
     }
 
     private static string? ValidatePasswordPolicy(string password, string email)
@@ -115,7 +115,7 @@ public class AuthController : ControllerBase
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT user_id, password_hash, role, is_active FROM users WHERE email = @email";
+        cmd.CommandText = "SELECT user_id, password_hash, role, is_active, first_name FROM users WHERE email = @email";
         cmd.Parameters.AddWithValue("@email", req.Email.ToLower());
 
         using var reader = cmd.ExecuteReader();
@@ -126,6 +126,7 @@ public class AuthController : ControllerBase
         var storedHash = reader.GetString(1);
         var role = reader.GetString(2);
         var isActive = reader.GetInt64(3);
+        var firstName = reader.IsDBNull(4) ? null : reader.GetString(4);
 
         if (isActive == 0)
             return Unauthorized(new { error = "Account is inactive." });
@@ -134,7 +135,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { error = "Invalid email or password." });
 
         var token = GenerateToken(userId, req.Email.ToLower(), role);
-        return Ok(new { token, role, email = req.Email.ToLower() });
+        return Ok(new { token, role, email = req.Email.ToLower(), firstName });
     }
 
     // GET /api/auth/me
