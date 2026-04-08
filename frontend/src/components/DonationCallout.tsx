@@ -82,7 +82,14 @@ export default function DonationCallout() {
                 {loading ? '--' : String(percent) + '%'} of {loading ? '...' : formatUsd(monthlyGoalUsd)} goal &mdash; {monthLabel}
               </span>
             </div>
-            <div className="donation-progress-bar" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+            <div
+              className="donation-progress-bar"
+              role="progressbar"
+              aria-label="Donation progress"
+              aria-valuenow={percent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
               <div className="donation-progress-fill" style={{ width: loading ? '0%' : String(percent) + '%' }} />
             </div>
           </div>

@@ -46,6 +46,13 @@
 
 .nav-link:hover {
   color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.nav-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .nav-btn-login {
