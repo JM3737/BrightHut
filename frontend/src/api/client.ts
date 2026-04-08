@@ -6,19 +6,13 @@ const DEFAULT_CLOUD_BASE_URL =
 
 function getCandidateBaseUrls(): string[] {
   const configured = CONFIGURED_BASE_URL?.trim()
-  const isLocalPage =
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-
   const candidates = new Set<string>()
 
-  // In local/dev, prefer same-origin requests so Vite proxy can forward `/api`.
-  if (isLocalPage) {
-    candidates.add('')  // Vite proxy forwards /api → local backend when running
-  }
-
+  // Explicit override first — set VITE_API_BASE_URL=http://localhost:5287 in
+  // .env.local if you want to develop against a locally running backend.
   if (configured) candidates.add(configured)
 
+  // Default: always use the cloud API (no noisy proxy errors when backend isn't running)
   candidates.add(DEFAULT_CLOUD_BASE_URL)
   return Array.from(candidates)
 }
