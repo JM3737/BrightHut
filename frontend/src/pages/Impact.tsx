@@ -13,12 +13,6 @@ function toNumber(v: unknown) {
   return Number.isFinite(n) ? n : 0
 }
 
-function ym(d: string) { return d.slice(0, 7) }
-
-function monthLabel(yyyyMm: string) {
-  const [y, m] = yyyyMm.split('-').map(Number)
-  return new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'short', year: '2-digit' })
-}
 
 export default function Impact() {
   const navigate = useNavigate()
@@ -104,19 +98,6 @@ export default function Impact() {
     return { activeResidents, avgEducation, avgHealth, processNotes, visits }
   }, [latestMonthRows, latestMonthWithEducation, latestMonthWithHealth, latestMonthWithVisits])
 
-  const trend = useMemo(() => {
-    const byMonth = new Map<string, number>()
-    for (const r of metrics) {
-      const d = String(r.month_start ?? '')
-      if (d.length < 7) continue
-      byMonth.set(ym(d), (byMonth.get(ym(d)) ?? 0) + toNumber(r.active_residents))
-    }
-    const keys = [...byMonth.keys()].sort().slice(-6)
-    const values = keys.map((k) => byMonth.get(k) ?? 0)
-    const max = Math.max(1, ...values)
-    return { keys, values, max }
-  }, [metrics])
-
   return (
     <main className="impact-page">
 
@@ -178,31 +159,6 @@ export default function Impact() {
                     <span className="impact-stat-sub">{sub}</span>
                   </div>
                 ))}
-              </div>
-            </div>
-          </section>
-
-          {/* ── Resident care trend ── */}
-          <section className="impact-chart-section">
-            <div className="impact-chart-inner">
-              <div className="impact-section-header">
-                <h2>Resident care trend</h2>
-                <p>Active resident counts across all safehouses over the last 6 reported months.</p>
-              </div>
-              <div className="impact-chart" role="img" aria-label="Active residents trend">
-                {trend.keys.map((k, idx) => {
-                  const v = trend.values[idx] ?? 0
-                  const h = Math.max(8, Math.round((v / trend.max) * 100))
-                  return (
-                    <div key={k} className="impact-bar">
-                      <span className="impact-bar-value">{v}</span>
-                      <div className="impact-bar-track">
-                        <div className="impact-bar-fill" style={{ height: h + '%' }} />
-                      </div>
-                      <span className="impact-bar-label">{monthLabel(k)}</span>
-                    </div>
-                  )
-                })}
               </div>
             </div>
           </section>

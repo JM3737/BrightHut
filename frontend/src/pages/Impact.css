@@ -158,18 +158,7 @@
   line-height: 1.4;
 }
 
-/* ── Chart ──────────────────────────────────────────────────────── */
-.impact-chart-section {
-  padding: 72px 80px;
-  background: var(--bg-white);
-  border-bottom: 1px solid var(--border);
-}
-
-.impact-chart-inner {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
+/* ── Section header (shared) ────────────────────────────────────── */
 .impact-section-header {
   text-align: center;
   margin-bottom: 40px;
@@ -187,50 +176,6 @@
   color: var(--text-muted);
   line-height: 1.6;
   margin: 0;
-}
-
-.impact-chart {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
-  align-items: end;
-  height: 180px;
-}
-
-.impact-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  height: 100%;
-  justify-content: flex-end;
-}
-
-.impact-bar-value {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.impact-bar-track {
-  width: 100%;
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-}
-
-.impact-bar-fill {
-  width: 100%;
-  border-radius: 6px 6px 4px 4px;
-  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
-  box-shadow: 0 4px 16px rgba(210, 162, 58, 0.25);
-  transition: height 0.5s ease;
-}
-
-.impact-bar-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 600;
 }
 
 /* ── What donors make possible ──────────────────────────────────── */
