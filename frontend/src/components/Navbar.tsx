@@ -23,6 +23,7 @@ export default function Navbar() {
     localStorage.removeItem('token')
     localStorage.removeItem('role')
     localStorage.removeItem('email')
+    localStorage.removeItem('firstName')
     setLoggedIn(false)
     navigate('/')
   }

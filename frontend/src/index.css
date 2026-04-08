@@ -63,7 +63,7 @@ button {
   font-family: var(--sans);
 }
 
-/* ── Universal card hover lift ───────────────────────────────────────────── */
+/* ── Universal card hover lift ──────────────────────────────────────────── */
 .about-card,
 .about-cta-card,
 .ad-card,
@@ -74,6 +74,7 @@ button {
 .impact-card,
 .impact-hero-card,
 .mc-card,
+.mc-donate-btn--secondary,
 .mc-gift-card,
 .mc-impact-card,
 .p-card,
@@ -96,6 +97,7 @@ button {
 .impact-card:hover,
 .impact-hero-card:hover,
 .mc-card:hover,
+.mc-donate-btn--secondary:hover,
 .mc-gift-card:hover,
 .mc-impact-card:hover,
 .p-card:hover,

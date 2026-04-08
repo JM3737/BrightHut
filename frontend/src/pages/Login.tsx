@@ -20,6 +20,7 @@ export default function Login() {
       localStorage.setItem('token', res.token)
       localStorage.setItem('role', res.role)
       localStorage.setItem('email', res.email)
+      if (res.firstName) localStorage.setItem('firstName', res.firstName)
       window.dispatchEvent(new Event('auth-change'))
       navigate(['staff', 'admin'].includes(res.role.toLowerCase()) ? '/participants' : '/')
     } catch (err: unknown) {

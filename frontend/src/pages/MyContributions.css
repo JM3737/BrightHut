@@ -65,7 +65,7 @@
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background 0.18s ease;
 }
 
 .mc-donate-btn:hover {
@@ -83,13 +83,13 @@
   width: auto;
   flex: 1;
   min-width: 200px;
-  background: var(--bg-white);
-  color: var(--primary-dark);
-  border: 2px solid var(--primary);
+  background: var(--primary-dark);
+  color: #fff;
+  border: 2px solid var(--primary-dark);
 }
 
 .mc-donate-btn--secondary:hover {
-  background: var(--primary-light);
+  background: #c8941f;
 }
 
 .mc-header h1 {

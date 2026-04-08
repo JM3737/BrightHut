@@ -188,6 +188,7 @@ export default function CreateAccount() {
       localStorage.setItem('token', res.token)
       localStorage.setItem('role', res.role)
       localStorage.setItem('email', res.email)
+      if (res.firstName) localStorage.setItem('firstName', res.firstName)
       window.dispatchEvent(new Event('auth-change'))
       navigate('/')
     } catch (err: unknown) {

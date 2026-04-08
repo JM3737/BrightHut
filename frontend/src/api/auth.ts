@@ -4,6 +4,7 @@ export interface AuthResponse {
   token: string
   role: string
   email: string
+  firstName?: string
 }
 
 export function register(data: {
