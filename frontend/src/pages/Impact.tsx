@@ -151,15 +151,31 @@ export default function Impact() {
               </div>
               <div className="impact-raised-stats">
                 {[
-                  { value: totals.activeResidents.toLocaleString(), label: 'Active residents' },
-                  { value: totals.avgEducation.toFixed(1) + '%', label: 'Avg education progress' },
-                  { value: totals.avgHealth.toFixed(2), label: 'Avg health score' },
-                  { value: totals.processNotes.toLocaleString(), label: 'Counseling notes' },
-                  { value: totals.visits.toLocaleString(), label: 'Home visits' },
-                ].map(({ value, label }) => (
+                  {
+                    value: totals.activeResidents.toLocaleString(),
+                    label: 'Girls in our care',
+                    sub: 'Residents living in our safehouses this month',
+                  },
+                  {
+                    value: totals.avgEducation.toFixed(0) + '%',
+                    label: 'Education progress',
+                    sub: 'Average academic progress across enrolled girls',
+                  },
+                  {
+                    value: totals.processNotes.toLocaleString(),
+                    label: 'Counseling sessions',
+                    sub: 'Individual and group sessions supporting emotional healing',
+                  },
+                  {
+                    value: totals.visits.toLocaleString(),
+                    label: 'Family visits',
+                    sub: 'Home visits to families preparing girls for reunification',
+                  },
+                ].map(({ value, label, sub }) => (
                   <div key={label} className="impact-stat">
                     <span className="impact-stat-value">{value}</span>
                     <span className="impact-stat-label">{label}</span>
+                    <span className="impact-stat-sub">{sub}</span>
                   </div>
                 ))}
               </div>
