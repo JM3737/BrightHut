@@ -92,7 +92,7 @@ export default function MyContributions() {
       const area = String(a.program_area ?? 'Other')
       map[area] = (map[area] ?? 0) + parseFloat(String(a.amount_allocated ?? 0))
     }
-    return Object.entries(map).filter(([, v]) => phpToUsd(v) >= 0.005).sort((a, b) => b[1] - a[1])
+    return Object.entries(map).filter(([, v]) => phpToUsd(v) >= 0.5).sort((a, b) => b[1] - a[1])
   }, [myAllocations])
 
   const handleDemoGift = async (e: React.FormEvent) => {
@@ -215,9 +215,6 @@ export default function MyContributions() {
                 )
               })}
             </div>
-            <p className="mc-allocation-total">
-              Total allocated: <strong>{fmt(allocationsByArea.reduce((s, [, v]) => s + v, 0))}</strong>
-            </p>
           </>
         )}
       </section>
