@@ -142,7 +142,14 @@ export default function MyContributions() {
         <div className="mc-card">
           <span className="mc-card-label">Supporter Since</span>
           <span className="mc-card-value">
-            {supporter ? String(supporter.first_donation_date ?? '—').slice(0, 10) : '—'}
+            {(() => {
+              const explicit = supporter ? String(supporter.first_donation_date ?? '').slice(0, 10) : ''
+              if (explicit && explicit !== 'null') return explicit
+              const earliest = myDonations.length > 0
+                ? [...myDonations].sort((a, b) => String(a.donation_date).localeCompare(String(b.donation_date)))[0]
+                : null
+              return earliest ? String(earliest.donation_date).slice(0, 10) : '—'
+            })()}
           </span>
         </div>
       </div>

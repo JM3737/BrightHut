@@ -60,11 +60,12 @@ public class DonationsController : ControllerBase
                 var namePart = normalizedEmail.Split('@')[0];
                 var displayName = char.ToUpper(namePart[0]) + namePart[1..];
                 insertCmd.CommandText = @"
-                    INSERT INTO supporters (display_name, email, supporter_type, relationship_type, status)
-                    VALUES (@display, @email, 'MonetaryDonor', 'Local', 'Active');
+                    INSERT INTO supporters (display_name, email, supporter_type, relationship_type, status, first_donation_date)
+                    VALUES (@display, @email, 'MonetaryDonor', 'Local', 'Active', @today);
                     SELECT last_insert_rowid();";
                 insertCmd.Parameters.AddWithValue("@display", displayName);
                 insertCmd.Parameters.AddWithValue("@email", normalizedEmail);
+                insertCmd.Parameters.AddWithValue("@today", today);
                 supporterId = (long)(insertCmd.ExecuteScalar() ?? 0L);
             }
         }
