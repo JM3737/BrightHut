@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getPublicImpactSnapshots, getSafehouseMonthlyMetrics } from '../api/impact'
+import { getSafehouseMonthlyMetrics } from '../api/impact'
 import { getDonations } from '../api/donations'
 import { phpToUsd, formatUsd } from '../components/donationProgress'
 import handsTogether from '../assets/hands-together.png'
 import './Impact.css'
 
-type Snapshot = Record<string, unknown>
 type MetricRow = Record<string, unknown>
 
 function toNumber(v: unknown) {
@@ -17,7 +16,6 @@ function toNumber(v: unknown) {
 
 export default function Impact() {
   const navigate = useNavigate()
-  const [snapshots, setSnapshots] = useState<Snapshot[]>([])
   const [metrics, setMetrics] = useState<MetricRow[]>([])
   const [totalRaisedPhp, setTotalRaisedPhp] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -26,9 +24,8 @@ export default function Impact() {
   useEffect(() => {
     setLoading(true)
     setError(null)
-    Promise.all([getPublicImpactSnapshots(), getSafehouseMonthlyMetrics(), getDonations()])
-      .then(([s, m, d]) => {
-        setSnapshots(s ?? [])
+    Promise.all([getSafehouseMonthlyMetrics(), getDonations()])
+      .then(([m, d]) => {
         setMetrics(m ?? [])
         const total = (d ?? [])
           .filter((r) => r.donation_type === 'Monetary')
@@ -39,11 +36,6 @@ export default function Impact() {
       .finally(() => setLoading(false))
   }, [])
 
-  const latestSnapshot = useMemo(() => {
-    return [...snapshots]
-      .sort((a, b) => String(b.snapshot_date ?? '').localeCompare(String(a.snapshot_date ?? '')))
-      [0] ?? null
-  }, [snapshots])
 
   const latestMonth = useMemo(() => {
     const ms = metrics
