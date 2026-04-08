@@ -2,7 +2,6 @@ using Brighthut.Services;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
@@ -301,18 +300,17 @@ public class AuthController : ControllerBase
     private (long UserId, string Role, bool IsActive, string? FirstName, bool TwoFactorEnabled, string? TwoFactorSecret, bool RequiresSupporterTypeSelection)
         EnsureUserForGoogleLogin(string email, string? givenName, string? familyName, string? displayName, string? googleSub, string? selectedSupporterType)
     {
-        using var conn = new SqliteConnection(_connStr);
+        using var conn = _factory.CreateConnection();
         conn.Open();
 
         using (var find = conn.CreateCommand())
         {
-            find.CommandText = @"
+            find.CommandText = _factory.OneRow(@"
                 SELECT user_id, role, is_active, first_name, two_factor_enabled, two_factor_secret, supporter_type,
                        auth_provider, google_sub, google_profile_completed
                 FROM users
-                WHERE lower(email) = @email
-                LIMIT 1";
-            find.Parameters.AddWithValue("@email", email);
+                WHERE lower(email) = @email");
+            DbConnectionFactory.Bind(find, "@email", email);
 
             using var reader = find.ExecuteReader();
             if (reader.Read())
@@ -332,8 +330,8 @@ public class AuthController : ControllerBase
                 {
                     using var bindSub = conn.CreateCommand();
                     bindSub.CommandText = "UPDATE users SET google_sub = @googleSub WHERE user_id = @userId";
-                    bindSub.Parameters.AddWithValue("@googleSub", googleSub);
-                    bindSub.Parameters.AddWithValue("@userId", userId);
+                    DbConnectionFactory.Bind(bindSub, "@googleSub", googleSub);
+                    DbConnectionFactory.Bind(bindSub, "@userId", userId);
                     bindSub.ExecuteNonQuery();
                 }
 
@@ -351,9 +349,9 @@ public class AuthController : ControllerBase
                             relationship_type = @relationshipType,
                             google_profile_completed = 1
                         WHERE user_id = @userId";
-                    completeProfile.Parameters.AddWithValue("@supporterType", selectedSupporterType);
-                    completeProfile.Parameters.AddWithValue("@relationshipType", DefaultRelationshipTypeFor(selectedSupporterType));
-                    completeProfile.Parameters.AddWithValue("@userId", userId);
+                    DbConnectionFactory.Bind(completeProfile, "@supporterType", selectedSupporterType);
+                    DbConnectionFactory.Bind(completeProfile, "@relationshipType", DefaultRelationshipTypeFor(selectedSupporterType));
+                    DbConnectionFactory.Bind(completeProfile, "@userId", userId);
                     completeProfile.ExecuteNonQuery();
                 }
 
@@ -382,14 +380,14 @@ public class AuthController : ControllerBase
                    acquisition_channel, is_active, auth_provider, google_sub, google_profile_completed)
                 VALUES
                   (@email, @passwordHash, 'donor', @firstName, @lastName, NULL, NULL,
-                   'GoogleOAuth', 1, 'google', @googleSub, 0);
-                SELECT last_insert_rowid();";
-            insertPending.Parameters.AddWithValue("@email", email);
-            insertPending.Parameters.AddWithValue("@passwordHash", BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString("N") + "#GoogleOnly"));
-            insertPending.Parameters.AddWithValue("@firstName", (object?)inferredFirstName ?? DBNull.Value);
-            insertPending.Parameters.AddWithValue("@lastName", (object?)lastName ?? DBNull.Value);
-            insertPending.Parameters.AddWithValue("@googleSub", (object?)googleSub ?? DBNull.Value);
-            var pendingUserId = (long)(insertPending.ExecuteScalar() ?? 0L);
+                   'GoogleOAuth', 1, 'google', @googleSub, 0);"
+                + _factory.LastInsertIdSql;
+            DbConnectionFactory.Bind(insertPending, "@email", email);
+            DbConnectionFactory.Bind(insertPending, "@passwordHash", BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString("N") + "#GoogleOnly"));
+            DbConnectionFactory.Bind(insertPending, "@firstName", inferredFirstName);
+            DbConnectionFactory.Bind(insertPending, "@lastName", lastName);
+            DbConnectionFactory.Bind(insertPending, "@googleSub", googleSub);
+            var pendingUserId = Convert.ToInt64(insertPending.ExecuteScalar() ?? 0L);
             return (pendingUserId, "donor", true, inferredFirstName, false, null, true);
         }
 
@@ -399,20 +397,20 @@ public class AuthController : ControllerBase
         {
             insert.CommandText = @"
                 INSERT INTO users
-                                    (email, password_hash, role, first_name, last_name, supporter_type, relationship_type,
-                                     acquisition_channel, is_active, auth_provider, google_sub, google_profile_completed)
+                  (email, password_hash, role, first_name, last_name, supporter_type, relationship_type,
+                   acquisition_channel, is_active, auth_provider, google_sub, google_profile_completed)
                 VALUES
-                                    (@email, @passwordHash, 'donor', @firstName, @lastName, @supporterType, @relationshipType,
-                                     'GoogleOAuth', 1, 'google', @googleSub, 1);
-                SELECT last_insert_rowid();";
-            insert.Parameters.AddWithValue("@email", email);
-            insert.Parameters.AddWithValue("@passwordHash", placeholderPasswordHash);
-            insert.Parameters.AddWithValue("@firstName", (object?)inferredFirstName ?? DBNull.Value);
-            insert.Parameters.AddWithValue("@lastName", (object?)lastName ?? DBNull.Value);
-            insert.Parameters.AddWithValue("@supporterType", selectedSupporterType);
-            insert.Parameters.AddWithValue("@relationshipType", DefaultRelationshipTypeFor(selectedSupporterType));
-                        insert.Parameters.AddWithValue("@googleSub", (object?)googleSub ?? DBNull.Value);
-            var userId = (long)(insert.ExecuteScalar() ?? 0L);
+                  (@email, @passwordHash, 'donor', @firstName, @lastName, @supporterType, @relationshipType,
+                   'GoogleOAuth', 1, 'google', @googleSub, 1);"
+                + _factory.LastInsertIdSql;
+            DbConnectionFactory.Bind(insert, "@email", email);
+            DbConnectionFactory.Bind(insert, "@passwordHash", placeholderPasswordHash);
+            DbConnectionFactory.Bind(insert, "@firstName", inferredFirstName);
+            DbConnectionFactory.Bind(insert, "@lastName", lastName);
+            DbConnectionFactory.Bind(insert, "@supporterType", selectedSupporterType);
+            DbConnectionFactory.Bind(insert, "@relationshipType", DefaultRelationshipTypeFor(selectedSupporterType));
+            DbConnectionFactory.Bind(insert, "@googleSub", googleSub);
+            var userId = Convert.ToInt64(insert.ExecuteScalar() ?? 0L);
             return (userId, "donor", true, inferredFirstName, false, null, false);
         }
     }
@@ -450,11 +448,11 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return Unauthorized(new { error = "Invalid token claims." });
 
-        using var conn = new SqliteConnection(_connStr);
+        using var conn = _factory.CreateConnection();
         conn.Open();
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT two_factor_enabled FROM users WHERE lower(email) = @email LIMIT 1";
-        cmd.Parameters.AddWithValue("@email", email.Trim().ToLowerInvariant());
+        cmd.CommandText = _factory.OneRow("SELECT two_factor_enabled FROM users WHERE lower(email) = @email");
+        DbConnectionFactory.Bind(cmd, "@email", email.Trim().ToLowerInvariant());
         var enabled = Convert.ToInt64(cmd.ExecuteScalar() ?? 0L) == 1L;
         return Ok(new { enabled });
     }
@@ -474,7 +472,7 @@ public class AuthController : ControllerBase
         var issuer = "BrightHut";
         var otpauth = $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(normalizedEmail)}?secret={secret}&issuer={Uri.EscapeDataString(issuer)}&algorithm=SHA1&digits=6&period=30";
 
-        using var conn = new SqliteConnection(_connStr);
+        using var conn = _factory.CreateConnection();
         conn.Open();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
@@ -482,8 +480,8 @@ public class AuthController : ControllerBase
             SET two_factor_secret = @secret,
                 two_factor_enabled = 0
             WHERE lower(email) = @email";
-        cmd.Parameters.AddWithValue("@secret", secret);
-        cmd.Parameters.AddWithValue("@email", normalizedEmail);
+        DbConnectionFactory.Bind(cmd, "@secret", secret);
+        DbConnectionFactory.Bind(cmd, "@email", normalizedEmail);
         var rows = cmd.ExecuteNonQuery();
         if (rows == 0)
             return NotFound(new { error = "User not found." });
@@ -504,11 +502,11 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return Unauthorized(new { error = "Invalid token claims." });
 
-        using var conn = new SqliteConnection(_connStr);
+        using var conn = _factory.CreateConnection();
         conn.Open();
         using var get = conn.CreateCommand();
-        get.CommandText = "SELECT two_factor_secret FROM users WHERE lower(email) = @email LIMIT 1";
-        get.Parameters.AddWithValue("@email", email.Trim().ToLowerInvariant());
+        get.CommandText = _factory.OneRow("SELECT two_factor_secret FROM users WHERE lower(email) = @email");
+        DbConnectionFactory.Bind(get, "@email", email.Trim().ToLowerInvariant());
         var secret = get.ExecuteScalar() as string;
 
         if (string.IsNullOrWhiteSpace(secret))
@@ -519,7 +517,7 @@ public class AuthController : ControllerBase
 
         using var upd = conn.CreateCommand();
         upd.CommandText = "UPDATE users SET two_factor_enabled = 1 WHERE lower(email) = @email";
-        upd.Parameters.AddWithValue("@email", email.Trim().ToLowerInvariant());
+        DbConnectionFactory.Bind(upd, "@email", email.Trim().ToLowerInvariant());
         upd.ExecuteNonQuery();
 
         return Ok(new { enabled = true });
@@ -538,11 +536,11 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return Unauthorized(new { error = "Invalid token claims." });
 
-        using var conn = new SqliteConnection(_connStr);
+        using var conn = _factory.CreateConnection();
         conn.Open();
         using var get = conn.CreateCommand();
-        get.CommandText = "SELECT two_factor_secret, two_factor_enabled FROM users WHERE lower(email) = @email LIMIT 1";
-        get.Parameters.AddWithValue("@email", email.Trim().ToLowerInvariant());
+        get.CommandText = _factory.OneRow("SELECT two_factor_secret, two_factor_enabled FROM users WHERE lower(email) = @email");
+        DbConnectionFactory.Bind(get, "@email", email.Trim().ToLowerInvariant());
         using var reader = get.ExecuteReader();
         if (!reader.Read())
             return NotFound(new { error = "User not found." });
@@ -558,7 +556,7 @@ public class AuthController : ControllerBase
 
         using var upd = conn.CreateCommand();
         upd.CommandText = "UPDATE users SET two_factor_enabled = 0, two_factor_secret = NULL WHERE lower(email) = @email";
-        upd.Parameters.AddWithValue("@email", email.Trim().ToLowerInvariant());
+        DbConnectionFactory.Bind(upd, "@email", email.Trim().ToLowerInvariant());
         upd.ExecuteNonQuery();
 
         return Ok(new { enabled = false });
