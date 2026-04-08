@@ -173,8 +173,8 @@ export default function MyContributions() {
       </div>
 
       <div className="mc-actions-row">
-        <button type="button" className="mc-donate-btn mc-donate-btn--secondary" onClick={() => navigate('/#donate')}>
-          Public donation goal
+        <button type="button" className="mc-donate-btn mc-donate-btn--secondary" onClick={() => navigate('/donate')}>
+          Make Another Donation
         </button>
       </div>
 
