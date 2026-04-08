@@ -136,8 +136,7 @@ export default function MyContributions() {
         <button className="mc-back" onClick={() => window.history.back()}>← Back to Portal</button>
         <h1>Donor dashboard</h1>
         <p className="mc-subhead">
-          Welcome back, <strong>{supporter ? String(supporter.first_name ?? firstName) : firstName}</strong>. Review your
-          history and record a demo gift (no real payment).
+          Welcome back, <strong>{supporter ? String(supporter.first_name ?? firstName) : firstName}</strong>. Review your donation history and view your impact.
         </p>
       </div>
 
