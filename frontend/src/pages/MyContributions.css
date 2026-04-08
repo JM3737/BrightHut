@@ -83,13 +83,14 @@
   width: auto;
   flex: 1;
   min-width: 200px;
-  background: var(--bg-white);
-  color: var(--primary-dark);
-  border: 2px solid var(--primary);
+  background: var(--primary-dark);
+  color: #fff;
+  border: 2px solid var(--primary-dark);
 }
 
 .mc-donate-btn--secondary:hover {
-  background: var(--primary-light);
+  background: #9a6e18;
+  border-color: #9a6e18;
 }
 
 .mc-header h1 {
