@@ -62,3 +62,48 @@ button {
   cursor: pointer;
   font-family: var(--sans);
 }
+
+/* ── Universal card hover lift ───────────────────────────────────────────── */
+.about-card,
+.about-cta-card,
+.ad-card,
+.an-card,
+.donate-payment-card,
+.donation-card,
+.donor-card,
+.impact-card,
+.impact-hero-card,
+.mc-card,
+.mc-gift-card,
+.p-card,
+.placeholder-card,
+.portal-card,
+.post-card,
+.privacy-card,
+.rd-timeline-card,
+.stat-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.about-card:hover,
+.about-cta-card:hover,
+.ad-card:hover,
+.an-card:hover,
+.donate-payment-card:hover,
+.donation-card:hover,
+.donor-card:hover,
+.impact-card:hover,
+.impact-hero-card:hover,
+.mc-card:hover,
+.mc-gift-card:hover,
+.p-card:hover,
+.placeholder-card:hover,
+.portal-card:hover,
+.post-card:hover,
+.privacy-card:hover,
+.rd-timeline-card:hover,
+.stat-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary);
+}
