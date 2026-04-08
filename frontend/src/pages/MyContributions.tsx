@@ -180,7 +180,7 @@ export default function MyContributions() {
       </section>
 
       <div className="mc-actions-row">
-        <button type="button" className="mc-donate-btn mc-donate-btn--secondary" onClick={() => navigate('/donate')}>
+        <button type="button" className="mc-donate-btn mc-donate-btn--secondary" onClick={() => navigate('/#donate')}>
           Make Another Donation
         </button>
       </div>
