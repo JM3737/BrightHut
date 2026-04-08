@@ -42,6 +42,7 @@ export default function MyContributions() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey] = useState(0)
+  const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -189,36 +190,45 @@ export default function MyContributions() {
       <section className="mc-section">
         <h2>Donation History</h2>
         {myDonations.length === 0 ? (
-          <p className="mc-empty-sub">No donations on record yet — add a demo gift above.</p>
+          <p className="mc-empty-sub">No donations on record yet.</p>
         ) : (
-          <div className="mc-table-wrap">
-            <table className="mc-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th>Currency</th>
-                  <th>Channel</th>
-                  <th>Campaign</th>
-                  <th>Recurring</th>
-                </tr>
-              </thead>
-              <tbody>
-                {myDonations.map((d) => (
-                  <tr key={String(d.donation_id)}>
-                    <td>{String(d.donation_date).slice(0, 10)}</td>
-                    <td>{String(d.donation_type ?? '—')}</td>
-                    <td>{d.amount != null ? fmt(d.amount) : '—'}</td>
-                    <td>{String(d.currency_code ?? '—')}</td>
-                    <td>{String(d.channel_source ?? '—')}</td>
-                    <td>{String(d.campaign_name ?? '—')}</td>
-                    <td>{d.is_recurring ? 'Yes' : 'No'}</td>
+          <>
+            <div className="mc-table-wrap">
+              <table className="mc-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Channel</th>
+                    <th>Campaign</th>
+                    <th>Recurring</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {myDonations.slice(0, showAll ? myDonations.length : 15).map((d) => (
+                    <tr key={String(d.donation_id)}>
+                      <td>{String(d.donation_date).slice(0, 10)}</td>
+                      <td>{String(d.donation_type ?? '—')}</td>
+                      <td>{d.amount != null ? fmt(d.amount) : '—'}</td>
+                      <td>{String(d.currency_code ?? '—')}</td>
+                      <td>{String(d.channel_source ?? '—')}</td>
+                      <td>{String(d.campaign_name ?? '—')}</td>
+                      <td>{d.is_recurring ? 'Yes' : 'No'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {myDonations.length > 15 && (
+              <div className="mc-show-more">
+                <button className="mc-show-more-btn" onClick={() => setShowAll(v => !v)}>
+                  {showAll ? 'Show less' : `See full donation history (${myDonations.length - 15} more)`}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
 
