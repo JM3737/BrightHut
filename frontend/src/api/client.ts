@@ -14,15 +14,10 @@ function getCandidateBaseUrls(): string[] {
 
   // In local/dev, prefer same-origin requests so Vite proxy can forward `/api`.
   if (isLocalPage) {
-    candidates.add('')
+    candidates.add('')  // Vite proxy forwards /api → local backend when running
   }
 
   if (configured) candidates.add(configured)
-
-  if (isLocalPage) {
-    candidates.add('http://localhost:5287')
-    candidates.add('https://localhost:7287')
-  }
 
   candidates.add(DEFAULT_CLOUD_BASE_URL)
   return Array.from(candidates)
