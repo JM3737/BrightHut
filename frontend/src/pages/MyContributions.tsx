@@ -177,7 +177,7 @@ export default function MyContributions() {
         <div className="mc-impact-header">
           <h2 id="mc-impact-heading">Your Direct Impact</h2>
           <p className="mc-impact-desc">
-            Here's exactly how BrightHut has put your generosity to work across our program areas.
+            Here is exactly how BrightHut has put your {fmt(totalGiven)} to work across our program areas.
           </p>
         </div>
         {allocationsByArea.length === 0 ? (
