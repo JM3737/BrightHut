@@ -13,6 +13,13 @@ function fmt(val: unknown) {
   return isNaN(n) ? '—' : formatUsd(phpToUsd(n))
 }
 
+function fmtDate(val: unknown) {
+  const s = String(val ?? '').slice(0, 10)
+  if (!s || s === 'null') return '—'
+  const d = new Date(s + 'T00:00:00')
+  return isNaN(d.getTime()) ? s : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
 export default function MyContributions() {
   const navigate = useNavigate()
   const email = localStorage.getItem('email') ?? ''
@@ -136,7 +143,7 @@ export default function MyContributions() {
         <div className="mc-card">
           <span className="mc-card-label">Latest Gift</span>
           <span className="mc-card-value">
-            {myDonations.length > 0 ? String(myDonations[0].donation_date).slice(0, 10) : '—'}
+            {myDonations.length > 0 ? fmtDate(myDonations[0].donation_date) : '—'}
           </span>
         </div>
         <div className="mc-card">
@@ -144,11 +151,11 @@ export default function MyContributions() {
           <span className="mc-card-value">
             {(() => {
               const explicit = supporter ? String(supporter.first_donation_date ?? '').slice(0, 10) : ''
-              if (explicit && explicit !== 'null') return explicit
+              if (explicit && explicit !== 'null') return fmtDate(explicit)
               const earliest = myDonations.length > 0
                 ? [...myDonations].sort((a, b) => String(a.donation_date).localeCompare(String(b.donation_date)))[0]
                 : null
-              return earliest ? String(earliest.donation_date).slice(0, 10) : '—'
+              return earliest ? fmtDate(earliest.donation_date) : '—'
             })()}
           </span>
         </div>
