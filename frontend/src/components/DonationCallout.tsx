@@ -12,7 +12,7 @@ import {
 } from './donationProgress'
 import './DonationCallout.css'
 
-const PRESET_AMOUNTS_USD = [25, 55, 100, 250, 500, 1000] as const
+const PRESET_AMOUNTS_USD = [25, 50, 100, 250, 500, 1000] as const
 
 export default function DonationCallout() {
   const navigate = useNavigate()
