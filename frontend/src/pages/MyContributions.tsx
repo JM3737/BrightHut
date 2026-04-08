@@ -20,6 +20,17 @@ function fmtDate(val: unknown) {
   return isNaN(d.getTime()) ? s : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
+function timeAgo(val: unknown) {
+  const s = String(val ?? '').slice(0, 10)
+  if (!s || s === 'null') return '—'
+  const d = new Date(s + 'T00:00:00')
+  if (isNaN(d.getTime())) return s
+  const days = Math.floor((Date.now() - d.getTime()) / 86_400_000)
+  if (days === 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  return `${days} days ago`
+}
+
 export default function MyContributions() {
   const navigate = useNavigate()
   const email = localStorage.getItem('email') ?? ''
@@ -143,7 +154,7 @@ export default function MyContributions() {
         <div className="mc-card">
           <span className="mc-card-label">Latest Gift</span>
           <span className="mc-card-value">
-            {myDonations.length > 0 ? fmtDate(myDonations[0].donation_date) : '—'}
+            {myDonations.length > 0 ? timeAgo(myDonations[0].donation_date) : '—'}
           </span>
         </div>
         <div className="mc-card">
