@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getDonations } from '../api/donations'
 import { getSafehouseMonthlyMetrics } from '../api/impact'
 import DonationCallout from '../components/DonationCallout'
+import safehouseCommunity from '../assets/safehouse-community.png'
+import sandboarding from '../assets/sandboarding.png'
 import { formatUsd, phpToUsd } from '../components/donationProgress'
 import './Home.css'
 
@@ -214,6 +216,11 @@ export default function Home() {
         </div>
         <div className="hero-visual">
           <div className="hero-blob" />
+          <img
+            src={safehouseCommunity}
+            alt="BrightHut safehouse community"
+            className="hero-community-img"
+          />
         </div>
       </section>
 
@@ -272,19 +279,28 @@ export default function Home() {
               <p className="portals-subtitle">Select a portal to get started</p>
             </div>
           )}
-          <div className={isStaffLike ? 'portals-grid' : 'portals-grid portals-grid--single'}>
-            {portals.map((portal) => (
-              <button
-                key={portal.path}
-                className={`portal-card portal-card--${portal.color}${!isStaffLike ? ' portal-card--featured' : ''}`}
-                onClick={() => navigate(portal.path)}
-              >
-                {portal.icon && <span className="portal-icon">{portal.icon}</span>}
-                <h3 className="portal-title">{portal.title}</h3>
-                <p className="portal-desc">{portal.description}</p>
-                <span className="portal-arrow">View now →</span>
-              </button>
-            ))}
+          <div className={!isStaffLike ? 'donor-portal-layout' : ''}>
+            {!isStaffLike && (
+              <img
+                src={sandboarding}
+                alt="Residents enjoying an outing"
+                className="donor-portal-img"
+              />
+            )}
+            <div className={isStaffLike ? 'portals-grid' : 'portals-grid portals-grid--single'}>
+              {portals.map((portal) => (
+                <button
+                  key={portal.path}
+                  className={`portal-card portal-card--${portal.color}${!isStaffLike ? ' portal-card--featured' : ''}`}
+                  onClick={() => navigate(portal.path)}
+                >
+                  {portal.icon && <span className="portal-icon">{portal.icon}</span>}
+                  <h3 className="portal-title">{portal.title}</h3>
+                  <p className="portal-desc">{portal.description}</p>
+                  <span className="portal-arrow">View now →</span>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
       )}
