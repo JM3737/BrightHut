@@ -36,7 +36,7 @@ export default function Navbar() {
       <div className="navbar-links">
         <Link to="/about" className="nav-link">About Us</Link>
         <Link to="/impact" className="nav-link">Impact</Link>
-        <Link to="/social" className="nav-link">Social Media</Link>
+        {(!loggedIn || isStaffLike) && <Link to="/social" className="nav-link">Social Media</Link>}
         <Link to="/privacy" className="nav-link">Privacy</Link>
         {loggedIn && (
           <>
