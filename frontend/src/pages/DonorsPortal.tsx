@@ -331,7 +331,7 @@ export default function DonorsPortal() {
           <button
             key={t.id}
             className={`tab-btn ${tab === t.id ? 'active' : ''}`}
-            onClick={() => { setTab(t.id); setSearch(''); setVisible(12); setFilterType(''); setFilterStatus(''); setFilterChurn(''); setFilterUpgrade('') }}
+            onClick={() => { setTab(t.id); setSearch(''); setPage(1); setFilterType(''); setFilterStatus(''); setFilterChurn(''); setFilterUpgrade('') }}
           >
             {t.label}
             <span className="tab-count">{data[t.id].length}</span>
@@ -342,19 +342,19 @@ export default function DonorsPortal() {
       {tab === 'supporters' && (
         <>
           <div className="dp-filters">
-            <select className="pp-filter-select" value={filterType} onChange={e => { setFilterType(e.target.value); setVisible(12) }}>
+            <select className="pp-filter-select" value={filterType} onChange={e => { setFilterType(e.target.value); setPage(1) }}>
               <option value="">All Types</option>
               {['MonetaryDonor','InKindDonor','Volunteer','SkillsContributor','SocialMediaAdvocate','PartnerOrganization'].map(t => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
-            <select className="pp-filter-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setVisible(12) }}>
+            <select className="pp-filter-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1) }}>
               <option value="">All Statuses</option>
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
             {churnScores.size > 0 && (
-              <select className="pp-filter-select" value={filterChurn} onChange={e => { setFilterChurn(e.target.value); setVisible(12) }}>
+              <select className="pp-filter-select" value={filterChurn} onChange={e => { setFilterChurn(e.target.value); setPage(1) }}>
                 <option value="">All Churn Risk</option>
                 <option value="At Risk">At Risk</option>
                 <option value="Moderate">Moderate</option>
@@ -362,7 +362,7 @@ export default function DonorsPortal() {
               </select>
             )}
             {upgradeScores.size > 0 && (
-              <select className="pp-filter-select" value={filterUpgrade} onChange={e => { setFilterUpgrade(e.target.value); setVisible(12) }}>
+              <select className="pp-filter-select" value={filterUpgrade} onChange={e => { setFilterUpgrade(e.target.value); setPage(1) }}>
                 <option value="">All Upgrade Potential</option>
                 <option value="HIGH">High Potential</option>
                 <option value="MEDIUM">Medium Potential</option>
