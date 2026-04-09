@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDonations, getDonationAllocations, getInKindDonationItems } from '../api/donations'
 import { getSupporters, getDonorChurnRisk, getDonorUpgradePotential, type DonorChurnEntry, type DonorUpgradeEntry } from '../api/supporters'
-import { insertRow, updateRow } from '../api/tables'
+import { deleteRow, insertRow, updateRow } from '../api/tables'
 import FormModal from '../components/FormModal'
 import PaginationBar from '../components/PaginationBar'
 import type { FieldDef } from '../components/FormModal'
@@ -150,6 +150,11 @@ export default function DonorsPortal() {
   const [upgradeScores, setUpgradeScores] = useState<Map<number, DonorUpgradeEntry>>(new Map())
   const [formState, setFormState] = useState<FormState | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [deletingKey, setDeletingKey] = useState<string | null>(null)
+  const [actionMessage, setActionMessage] = useState<string | null>(null)
+
+  const role = (localStorage.getItem('role') ?? '').toLowerCase()
+  const isAdmin = role === 'admin'
 
   useEffect(() => {
     Promise.all([getDonations(), getSupporters(), getDonationAllocations(), getInKindDonationItems()])
@@ -228,16 +233,52 @@ export default function DonorsPortal() {
     setRefreshKey(k => k + 1)
   }
 
+  const handleDeleteRecord = async (tableName: 'donations' | 'donation_allocations' | 'in_kind_donation_items', id: number, label: string) => {
+    if (!isAdmin) {
+      setActionMessage('Only admin can delete records.')
+      return
+    }
+
+    const confirmed = window.confirm(`Delete ${label} #${id}? This action cannot be undone.`)
+    if (!confirmed) return
+
+    const key = `${tableName}-${id}`
+    setDeletingKey(key)
+    setActionMessage(null)
+    try {
+      await deleteRow(tableName, id)
+      setActionMessage(`${label} #${id} deleted.`)
+      setRefreshKey(k => k + 1)
+    } catch (err: unknown) {
+      setActionMessage(err instanceof Error ? err.message : 'Delete failed.')
+    } finally {
+      setDeletingKey(null)
+    }
+  }
+
   const renderCard = (r: Row, rk: string) => {
     switch (tab) {
       case 'donations': {
         const donorName = supporterMap.get(Number(r.supporter_id)) || '—'
+        const donationId = Number(r.donation_id)
+        const donationDeleteKey = `donations-${donationId}`
         return (
           <div key={rk} className="donor-card">
             <div className="donor-card-header">
               <span className={`type-badge type-${String(r.donation_type ?? '').toLowerCase()}`}>{String(r.donation_type ?? '—')}</span>
               <span className="donor-date">{String(r.donation_date ?? '—')}</span>
-              <button className="dp-edit-btn" onClick={() => setFormState({ mode: 'edit-donation', record: r })}>Edit</button>
+              <div className="dp-card-actions">
+                {isAdmin && (
+                  <button
+                    className="dp-danger-btn"
+                    onClick={() => void handleDeleteRecord('donations', donationId, 'Donation')}
+                    disabled={deletingKey === donationDeleteKey}
+                  >
+                    {deletingKey === donationDeleteKey ? 'Deleting…' : 'Delete'}
+                  </button>
+                )}
+                <button className="dp-edit-btn" onClick={() => setFormState({ mode: 'edit-donation', record: r })}>Edit</button>
+              </div>
             </div>
             <div className="donor-card-body">
               <div className="donor-field"><span className="field-label">Donor</span><span className="donor-name-val">{donorName}</span></div>
@@ -263,7 +304,9 @@ export default function DonorsPortal() {
             <div className="donor-card-header">
               <span className="supporter-name">{String(r.display_name ?? '—')}</span>
               <span className={`status-badge status-${String(r.status ?? '').toLowerCase()}`}>{String(r.status ?? '—')}</span>
-              <button className="dp-edit-btn" onClick={() => setFormState({ mode: 'edit-supporter', record: r })}>Edit</button>
+              <div className="dp-card-actions">
+                <button className="dp-edit-btn" onClick={() => setFormState({ mode: 'edit-supporter', record: r })}>Edit</button>
+              </div>
             </div>
             <div className="donor-card-body">
               <div className="donor-field"><span className="field-label">Type</span><span>{String(r.supporter_type ?? '—')}</span></div>
@@ -324,11 +367,23 @@ export default function DonorsPortal() {
         )
       }
       case 'allocations':
+        {
+        const allocationId = Number(r.allocation_id)
+        const allocationDeleteKey = `donation_allocations-${allocationId}`
         return (
           <div key={rk} className="donor-card">
             <div className="donor-card-header">
               <span className="supporter-name">{String(r.program_area ?? '—')}</span>
               <span className="donor-date">{String(r.allocation_date ?? '—')}</span>
+              {isAdmin && (
+                <button
+                  className="dp-danger-btn"
+                  onClick={() => void handleDeleteRecord('donation_allocations', allocationId, 'Allocation')}
+                  disabled={deletingKey === allocationDeleteKey}
+                >
+                  {deletingKey === allocationDeleteKey ? 'Deleting…' : 'Delete'}
+                </button>
+              )}
             </div>
             <div className="donor-card-body">
               <div className="donor-field"><span className="field-label">Amount</span><span>{formatUsd(phpToUsd(Number(r.amount_allocated ?? 0)))}</span></div>
@@ -338,12 +393,25 @@ export default function DonorsPortal() {
             </div>
           </div>
         )
+      }
       case 'inkind':
+        {
+        const itemId = Number(r.item_id)
+        const itemDeleteKey = `in_kind_donation_items-${itemId}`
         return (
           <div key={rk} className="donor-card">
             <div className="donor-card-header">
               <span className="supporter-name">{String(r.item_name ?? '—')}</span>
               <span className={`type-badge type-${String(r.received_condition ?? '').toLowerCase()}`}>{String(r.received_condition ?? '—')}</span>
+              {isAdmin && (
+                <button
+                  className="dp-danger-btn"
+                  onClick={() => void handleDeleteRecord('in_kind_donation_items', itemId, 'In-kind item')}
+                  disabled={deletingKey === itemDeleteKey}
+                >
+                  {deletingKey === itemDeleteKey ? 'Deleting…' : 'Delete'}
+                </button>
+              )}
             </div>
             <div className="donor-card-body">
               <div className="donor-field"><span className="field-label">Category</span><span>{String(r.item_category ?? '—')}</span></div>
@@ -353,6 +421,7 @@ export default function DonorsPortal() {
             </div>
           </div>
         )
+      }
     }
   }
 
@@ -444,6 +513,7 @@ export default function DonorsPortal() {
           onChange={(e) => { setSearch(e.target.value); setPage(1) }}
         />
         <span className="count">{filtered.length} record{filtered.length !== 1 ? 's' : ''}</span>
+        {actionMessage && <span className="count">{actionMessage}</span>}
         {tab === 'supporters' && (
           <button className="dp-add-btn" onClick={() => setFormState({ mode: 'add-supporter' })}>+ Add Supporter</button>
         )}
