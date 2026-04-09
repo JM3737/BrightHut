@@ -21,7 +21,7 @@ namespace Brighthut.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/donors/churn-risk")]
-[Authorize(Roles = "admin")]
+[Authorize(Roles = "admin,staff")]
 public class DonorChurnRiskController : ControllerBase
 {
     private readonly SqliteDataService _db;

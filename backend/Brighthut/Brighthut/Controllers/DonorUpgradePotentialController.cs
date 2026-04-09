@@ -26,7 +26,7 @@ namespace Brighthut.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/donors/upgrade-potential")]
-[Authorize(Roles = "admin")]
+[Authorize(Roles = "admin,staff")]
 public class DonorUpgradePotentialController : ControllerBase
 {
     private readonly SqliteDataService _db;
