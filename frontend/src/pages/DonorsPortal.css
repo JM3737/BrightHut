@@ -206,3 +206,125 @@
   white-space: nowrap;
 }
 .dp-add-btn:hover { background: var(--primary-dark); }
+
+/* ── Donor churn risk ──────────────────────────────────────────────────────── */
+
+.dp-churn-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 0.5rem 0.75rem;
+  background: #fafafa;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.dp-churn-banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dp-churn-banner-dot--risk     { background: #ef4444; }
+.dp-churn-banner-dot--moderate { background: #f59e0b; }
+.dp-churn-banner-sep  { color: var(--border); margin: 0 0.15rem; }
+.dp-churn-banner-note { margin-left: auto; font-size: 0.78rem; color: #aaa; }
+
+.dp-churn-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.dp-churn-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.dp-churn-badge--risk     { background: #fee2e2; color: #991b1b; }
+.dp-churn-badge--moderate { background: #fef3c7; color: #92400e; }
+.dp-churn-badge--stable   { background: #d1fae5; color: #065f46; }
+
+.dp-churn-bar-track {
+  flex: 1;
+  height: 5px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.dp-churn-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.dp-churn-bar-fill--risk     { background: #ef4444; }
+.dp-churn-bar-fill--moderate { background: #f59e0b; }
+.dp-churn-bar-fill--stable   { background: #10b981; }
+
+.dp-churn-pct {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 2.2rem;
+  text-align: right;
+}
+
+.dp-churn-driver {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* ── Donor upgrade potential ───────────────────────────────────────────────── */
+
+.dp-upgrade-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 0.5rem 0.75rem;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  border-radius: var(--radius-sm);
+}
+.dp-upgrade-banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dp-upgrade-banner-dot--high   { background: #7c3aed; }
+.dp-upgrade-banner-dot--medium { background: #6366f1; }
+
+.dp-upgrade-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.1rem;
+}
+
+.dp-upgrade-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.dp-upgrade-badge--high   { background: #ede9fe; color: #5b21b6; }
+.dp-upgrade-badge--medium { background: #e0e7ff; color: #3730a3; }
+.dp-upgrade-badge--low    { background: #f3f4f6; color: #6b7280; }
+
+.dp-upgrade-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.dp-upgrade-bar-fill--high   { background: #7c3aed; }
+.dp-upgrade-bar-fill--medium { background: #6366f1; }
+.dp-upgrade-bar-fill--low    { background: #d1d5db; }

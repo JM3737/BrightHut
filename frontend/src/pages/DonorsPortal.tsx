@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDonations, getDonationAllocations, getInKindDonationItems } from '../api/donations'
-import { getSupporters } from '../api/supporters'
+import { getSupporters, getDonorChurnRisk, getDonorUpgradePotential, type DonorChurnEntry, type DonorUpgradeEntry } from '../api/supporters'
 import { insertRow, updateRow } from '../api/tables'
 import FormModal from '../components/FormModal'
 import type { FieldDef } from '../components/FormModal'
@@ -61,6 +61,10 @@ export default function DonorsPortal() {
   const [visible, setVisible] = useState(12)
   const [filterType, setFilterType] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [filterChurn, setFilterChurn] = useState('')
+  const [filterUpgrade, setFilterUpgrade] = useState('')
+  const [churnScores, setChurnScores] = useState<Map<number, DonorChurnEntry>>(new Map())
+  const [upgradeScores, setUpgradeScores] = useState<Map<number, DonorUpgradeEntry>>(new Map())
   const [formState, setFormState] = useState<FormState | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -71,9 +75,45 @@ export default function DonorsPortal() {
       })
       .catch(() => setError('Failed to load donor data.'))
       .finally(() => setLoading(false))
+
+    getDonorChurnRisk()
+      .then(result => {
+        const map = new Map<number, DonorChurnEntry>()
+        for (const d of result.donors) map.set(d.supporterId, d)
+        setChurnScores(map)
+      })
+      .catch(() => {})
+
+    getDonorUpgradePotential()
+      .then(result => {
+        const map = new Map<number, DonorUpgradeEntry>()
+        for (const d of result.donors) map.set(d.supporterId, d)
+        setUpgradeScores(map)
+      })
+      .catch(() => {})
   }, [refreshKey])
 
   const totalMonetary = data.donations.filter(d => d.donation_type === 'Monetary').reduce((sum, d) => sum + Number(d.amount ?? 0), 0)
+
+  const churnSummary = useMemo(() => {
+    if (churnScores.size === 0) return null
+    let atRisk = 0, moderate = 0
+    for (const entry of churnScores.values()) {
+      if (entry.churnTier === 'At Risk') atRisk++
+      else if (entry.churnTier === 'Moderate') moderate++
+    }
+    return { atRisk, moderate }
+  }, [churnScores])
+
+  const upgradeSummary = useMemo(() => {
+    if (upgradeScores.size === 0) return null
+    let high = 0, medium = 0
+    for (const entry of upgradeScores.values()) {
+      if (entry.upgradeTier === 'HIGH') high++
+      else if (entry.upgradeTier === 'MEDIUM') medium++
+    }
+    return { high, medium }
+  }, [upgradeScores])
 
   const rows = data[tab]
   const filtered = rows.filter((r) => {
@@ -81,7 +121,9 @@ export default function DonorsPortal() {
     if (tab === 'supporters') {
       const matchType = !filterType || r.supporter_type === filterType
       const matchStatus = !filterStatus || r.status === filterStatus
-      return matchSearch && matchType && matchStatus
+      const matchChurn = !filterChurn || churnScores.get(Number(r.supporter_id))?.churnTier === filterChurn
+      const matchUpgrade = !filterUpgrade || upgradeScores.get(Number(r.supporter_id))?.upgradeTier === filterUpgrade
+      return matchSearch && matchType && matchStatus && matchChurn && matchUpgrade
     }
     return matchSearch
   })
@@ -132,7 +174,15 @@ export default function DonorsPortal() {
           </div>
         )
       }
-      case 'supporters':
+      case 'supporters': {
+        const churn = churnScores.get(Number(r.supporter_id))
+        const churnTierKey = churn?.churnTier === 'At Risk' ? 'risk'
+                           : churn?.churnTier === 'Moderate' ? 'moderate'
+                           : 'stable'
+        const upgrade = upgradeScores.get(Number(r.supporter_id))
+        const upgradeTierKey = upgrade?.upgradeTier === 'HIGH' ? 'high'
+                             : upgrade?.upgradeTier === 'MEDIUM' ? 'medium'
+                             : 'low'
         return (
           <div key={i} className="donor-card">
             <div className="donor-card-header">
@@ -146,9 +196,40 @@ export default function DonorsPortal() {
               {!!r.email && <div className="donor-field"><span className="field-label">Email</span><span>{String(r.email)}</span></div>}
               {!!r.first_donation_date && <div className="donor-field"><span className="field-label">First Donation</span><span>{String(r.first_donation_date)}</span></div>}
               {!!r.acquisition_channel && <div className="donor-field"><span className="field-label">Source</span><span>{String(r.acquisition_channel)}</span></div>}
+              {churn && (
+                <div className="dp-churn-row">
+                  <span className={`dp-churn-badge dp-churn-badge--${churnTierKey}`}>{churn.churnTier}</span>
+                  <div className="dp-churn-bar-track">
+                    <div className={`dp-churn-bar-fill dp-churn-bar-fill--${churnTierKey}`} style={{ width: `${Math.round(churn.churnProbability * 100)}%` }} />
+                  </div>
+                  <span className="dp-churn-pct">{Math.round(churn.churnProbability * 100)}%</span>
+                </div>
+              )}
+              {churn?.topRiskDriver && (
+                <div className="donor-field dp-churn-driver">
+                  <span className="field-label">Risk factor</span>
+                  <span>{churn.topRiskDriver.feature}</span>
+                </div>
+              )}
+              {upgrade && (
+                <div className="dp-upgrade-row">
+                  <span className={`dp-upgrade-badge dp-upgrade-badge--${upgradeTierKey}`}>{upgrade.upgradeTier} upgrade</span>
+                  <div className="dp-churn-bar-track">
+                    <div className={`dp-upgrade-bar-fill dp-upgrade-bar-fill--${upgradeTierKey}`} style={{ width: `${Math.round(upgrade.upgradeProbability * 100)}%` }} />
+                  </div>
+                  <span className="dp-churn-pct">{Math.round(upgrade.upgradeProbability * 100)}%</span>
+                </div>
+              )}
+              {upgrade?.topUpgradeSignal && (
+                <div className="donor-field dp-churn-driver">
+                  <span className="field-label">Upgrade signal</span>
+                  <span>{upgrade.topUpgradeSignal.feature}</span>
+                </div>
+              )}
             </div>
           </div>
         )
+      }
       case 'allocations':
         return (
           <div key={i} className="donor-card">
@@ -221,7 +302,7 @@ export default function DonorsPortal() {
           <button
             key={t.id}
             className={`tab-btn ${tab === t.id ? 'active' : ''}`}
-            onClick={() => { setTab(t.id); setSearch(''); setVisible(12); setFilterType(''); setFilterStatus('') }}
+            onClick={() => { setTab(t.id); setSearch(''); setVisible(12); setFilterType(''); setFilterStatus(''); setFilterChurn(''); setFilterUpgrade('') }}
           >
             {t.label}
             <span className="tab-count">{data[t.id].length}</span>
@@ -230,19 +311,57 @@ export default function DonorsPortal() {
       </div>
 
       {tab === 'supporters' && (
-        <div className="dp-filters">
-          <select className="pp-filter-select" value={filterType} onChange={e => { setFilterType(e.target.value); setVisible(12) }}>
-            <option value="">All Types</option>
-            {['MonetaryDonor','InKindDonor','Volunteer','SkillsContributor','SocialMediaAdvocate','PartnerOrganization'].map(t => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-          <select className="pp-filter-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setVisible(12) }}>
-            <option value="">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-        </div>
+        <>
+          <div className="dp-filters">
+            <select className="pp-filter-select" value={filterType} onChange={e => { setFilterType(e.target.value); setVisible(12) }}>
+              <option value="">All Types</option>
+              {['MonetaryDonor','InKindDonor','Volunteer','SkillsContributor','SocialMediaAdvocate','PartnerOrganization'].map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <select className="pp-filter-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setVisible(12) }}>
+              <option value="">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            {churnScores.size > 0 && (
+              <select className="pp-filter-select" value={filterChurn} onChange={e => { setFilterChurn(e.target.value); setVisible(12) }}>
+                <option value="">All Churn Risk</option>
+                <option value="At Risk">At Risk</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Stable">Stable</option>
+              </select>
+            )}
+            {upgradeScores.size > 0 && (
+              <select className="pp-filter-select" value={filterUpgrade} onChange={e => { setFilterUpgrade(e.target.value); setVisible(12) }}>
+                <option value="">All Upgrade Potential</option>
+                <option value="HIGH">High Potential</option>
+                <option value="MEDIUM">Medium Potential</option>
+                <option value="LOW">Low Potential</option>
+              </select>
+            )}
+          </div>
+          {churnSummary && (
+            <div className="dp-churn-banner">
+              <span className="dp-churn-banner-dot dp-churn-banner-dot--risk" />
+              <strong>{churnSummary.atRisk}</strong> donors at risk of lapsing
+              <span className="dp-churn-banner-sep">·</span>
+              <span className="dp-churn-banner-dot dp-churn-banner-dot--moderate" />
+              <strong>{churnSummary.moderate}</strong> moderate
+              <span className="dp-churn-banner-note">Based on giving history · Admin only</span>
+            </div>
+          )}
+          {upgradeSummary && (
+            <div className="dp-upgrade-banner">
+              <span className="dp-upgrade-banner-dot dp-upgrade-banner-dot--high" />
+              <strong>{upgradeSummary.high}</strong> donors ready for upgrade ask
+              <span className="dp-churn-banner-sep">·</span>
+              <span className="dp-upgrade-banner-dot dp-upgrade-banner-dot--medium" />
+              <strong>{upgradeSummary.medium}</strong> medium potential
+              <span className="dp-churn-banner-note">Based on giving trajectory · Admin only</span>
+            </div>
+          )}
+        </>
       )}
 
       <div className="donors-controls">
