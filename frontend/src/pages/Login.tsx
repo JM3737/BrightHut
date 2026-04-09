@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { enableTwoFactor, googleLogin, login, setupTwoFactor, type AuthResponse } from '../api/auth'
+import { normalizeRoleForStorage } from '../lib/storedRole'
 import './AuthPage.css'
 import brandLogo from '../assets/Brighthut-logo.png'
 
@@ -131,7 +132,7 @@ export default function Login() {
             }
 
             localStorage.setItem('token', res.token)
-            localStorage.setItem('role', res.role)
+            localStorage.setItem('role', normalizeRoleForStorage(res.role))
             localStorage.setItem('email', res.email)
             if (res.firstName) localStorage.setItem('firstName', res.firstName)
             window.dispatchEvent(new Event('auth-change'))
@@ -177,7 +178,7 @@ export default function Login() {
       return
     }
     localStorage.setItem('token', res.token)
-    localStorage.setItem('role', res.role)
+    localStorage.setItem('role', normalizeRoleForStorage(res.role))
     localStorage.setItem('email', res.email)
     if (res.firstName) localStorage.setItem('firstName', res.firstName)
     window.dispatchEvent(new Event('auth-change'))

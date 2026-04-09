@@ -10,6 +10,7 @@ import socialMediaIcon from '../assets/social-media-icon.png'
 import donorIcon from '../assets/donor-icon.png'
 import participantsIcon from '../assets/participants-icon.png'
 import { formatUsd, phpToUsd } from '../components/donationProgress'
+import { getStoredRole, isStaffLikeRole } from '../lib/storedRole'
 import './Home.css'
 
 type MetricRow = Record<string, unknown>
@@ -103,8 +104,7 @@ export default function Home() {
       hasMetrics: impactMetrics.length > 0,
     }
   }, [impactDonations, impactMetrics])
-  const role = (localStorage.getItem('role') ?? '').toLowerCase()
-  const isStaffLike = role === 'staff' || role === 'admin'
+  const isStaffLike = isStaffLikeRole(getStoredRole())
   const portals = isStaffLike
     ? privatePortals
     : privatePortals

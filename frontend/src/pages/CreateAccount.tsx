@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
+import { normalizeRoleForStorage } from '../lib/storedRole'
 import './CreateAccount.css'
 
 type SupporterType = 'MonetaryDonor' | 'InKindDonor' | 'Volunteer' | 'SkillsContributor' | 'SocialMediaAdvocate' | 'PartnerOrganization' | null
@@ -214,7 +215,7 @@ export default function CreateAccount() {
         supporterType: formData.supporterType || undefined,
       })
       localStorage.setItem('token', res.token)
-      localStorage.setItem('role', res.role)
+      localStorage.setItem('role', normalizeRoleForStorage(res.role))
       localStorage.setItem('email', res.email)
       if (res.firstName) localStorage.setItem('firstName', res.firstName)
       window.dispatchEvent(new Event('auth-change'))

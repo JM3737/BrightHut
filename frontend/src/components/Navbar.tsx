@@ -2,14 +2,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import './Navbar.css'
 import brandLogo from '../assets/Brighthut-logo.png'
+import { getStoredRole, isStaffLikeRole } from '../lib/storedRole'
 
 export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem('token'))
   const [menuOpen, setMenuOpen] = useState(false)
-  const role = (localStorage.getItem('role') ?? '').toLowerCase()
-  const isStaffLike = role === 'staff' || role === 'admin'
+  const isStaffLike = isStaffLikeRole(getStoredRole())
 
   useEffect(() => {
     const sync = () => setLoggedIn(!!localStorage.getItem('token'))

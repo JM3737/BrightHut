@@ -9,14 +9,14 @@ import {
   sumMonetaryPhpForYear,
   type DonationRow,
 } from './donationProgress'
+import { isStaffLikeRole } from '../lib/storedRole'
 import './DonationCallout.css'
 
 const PRESET_AMOUNTS_USD = [25, 50, 100, 250, 500, 1000] as const
 
 export default function DonationCallout() {
   const navigate = useNavigate()
-  const isStaff = localStorage.getItem('role') === 'staff'
-  if (isStaff) return null
+  const hideForStaff = isStaffLikeRole()
 
   const [selected, setSelected] = useState<number | null>(null)
   const [customRaw, setCustomRaw] = useState('')
@@ -27,6 +27,7 @@ export default function DonationCallout() {
   const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (hideForStaff) return
     let cancelled = false
     setLoading(true)
     setLoadError(null)
@@ -35,7 +36,9 @@ export default function DonationCallout() {
       .catch(() => { if (!cancelled) { setLoadError('Could not load donation totals.'); setRows([]) } })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [])
+  }, [hideForStaff])
+
+  if (hideForStaff) return null
 
   const currentYear = new Date().getFullYear()
   const raisedPhpThisYear = useMemo(() => sumMonetaryPhpForYear(rows, currentYear), [rows, currentYear])

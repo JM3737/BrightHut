@@ -9,8 +9,8 @@ import AboutUs from './pages/AboutUs'
 import SocialPortal from './pages/SocialPortal'
 import DonatePaymentPage from './pages/DonatePaymentPage'
 import DonorsPortal from './pages/DonorsPortal'
-import DonationsDashboard from './pages/DonationsDashboard'
-import MyContributions from './pages/MyContributions'
+import DonorsLanding from './components/DonorsLanding'
+import { getStoredRole } from './lib/storedRole'
 import AdminDashboard from './pages/AdminDashboard'
 import ResidentDetail from './pages/ResidentDetail'
 import ParticipantsPortal from './pages/ParticipantsPortal'
@@ -20,7 +20,7 @@ import Analytics from './pages/Analytics'
 
 function RequireAuth({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
   const token = localStorage.getItem('token')
-  const role = (localStorage.getItem('role') ?? '').toLowerCase()
+  const role = getStoredRole()
   if (!token) return <Navigate to="/login" replace />
   if (roles && !roles.includes(role)) return <Navigate to="/" replace />
   return <>{children}</>
@@ -52,7 +52,7 @@ function App() {
           path="/donors"
           element={
             <RequireAuth roles={['donor', 'staff', 'admin']}>
-              {['staff', 'admin'].includes((localStorage.getItem('role') ?? '').toLowerCase()) ? <DonationsDashboard /> : <MyContributions />}
+              <DonorsLanding />
             </RequireAuth>
           }
         />
