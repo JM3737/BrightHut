@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getResidents, getInterventionPlans, getIncidentReports, getResidentReadinessScore, getResidentRegressionRisk } from '../api/residents'
+import { getResidents, getInterventionPlans, getIncidentReports, getResidentReadinessScore, getInterventionEffectiveness } from '../api/residents'
 import { getDonations } from '../api/donations'
 import { getSafehouses } from '../api/safehouses'
 import { getSupporters } from '../api/supporters'
@@ -26,7 +26,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [readinessTiers, setReadinessTiers] = useState<{ high: number; moderate: number; needsSupport: number } | null>(null)
-  const [regressionRiskTiers, setRegressionRiskTiers] = useState<{ high: number; moderate: number; stable: number } | null>(null)
+  const [interventionTiers, setInterventionTiers] = useState<{ improving: number; onTrack: number; reviewNeeded: number } | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -65,19 +65,20 @@ export default function AdminDashboard() {
             }
           })
 
-        Promise.allSettled(activeIds.map((id: number) => getResidentRegressionRisk(id)))
+        Promise.allSettled(activeIds.map((id: number) => getInterventionEffectiveness(id)))
           .then(results => {
-            const counts = { high: 0, moderate: 0, stable: 0 }
+            const counts = { improving: 0, onTrack: 0, reviewNeeded: 0 }
             results.forEach(res => {
               if (res.status === 'fulfilled') {
-                const tier = res.value.riskTier
-                if (tier === 'High Risk') counts.high++
-                else if (tier === 'Moderate Risk') counts.moderate++
-                else counts.stable++
+                const label = res.value.statusLabel
+                if (label === 'IMPROVING') counts.improving++
+                else if (label === 'ON TRACK') counts.onTrack++
+                else if (label === 'REVIEW NEEDED') counts.reviewNeeded++
+                // INSUFFICIENT DATA is excluded from counts
               }
             })
-            if (counts.high + counts.moderate + counts.stable > 0) {
-              setRegressionRiskTiers(counts)
+            if (counts.improving + counts.onTrack + counts.reviewNeeded > 0) {
+              setInterventionTiers(counts)
             }
           })
       })
@@ -293,18 +294,18 @@ export default function AdminDashboard() {
           )
         })()}
 
-        {/* Regression Risk Breakdown */}
-        {regressionRiskTiers && (() => {
-          const total = regressionRiskTiers.high + regressionRiskTiers.moderate + regressionRiskTiers.stable
+        {/* Intervention Effectiveness Breakdown */}
+        {interventionTiers && (() => {
+          const total = interventionTiers.improving + interventionTiers.onTrack + interventionTiers.reviewNeeded
           const tiers = [
-            { label: 'High Risk',      count: regressionRiskTiers.high,     key: 'high' },
-            { label: 'Moderate Risk',  count: regressionRiskTiers.moderate, key: 'moderate' },
-            { label: 'Stable',         count: regressionRiskTiers.stable,   key: 'low' },
+            { label: 'Improving',     count: interventionTiers.improving,    key: 'high' },
+            { label: 'On Track',      count: interventionTiers.onTrack,      key: 'moderate' },
+            { label: 'Review Needed', count: interventionTiers.reviewNeeded, key: 'low' },
           ]
           return (
             <section className="ad-card">
               <div className="ad-card-header">
-                <h2>Regression Risk</h2>
+                <h2>Intervention Effectiveness</h2>
                 <button className="ad-link" onClick={() => navigate('/participants')}>View caseload →</button>
               </div>
               <p className="ad-readiness-subtitle">Active residents scored by the ML pipeline · {total} residents</p>

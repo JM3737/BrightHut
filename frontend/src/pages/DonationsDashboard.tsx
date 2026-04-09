@@ -239,7 +239,6 @@ export default function DonationsDashboard() {
                     return (
                       <div key={d.supporterId} className="dd-bar-row">
                         <span className="dd-bar-label">{d.name}</span>
-                        <span className={`dd-churn-badge dd-churn-badge--${tk}`}>{d.churnTier}</span>
                         <div className="dd-bar-track">
                           <div className={`dd-bar-fill dd-bar-fill--${tk}`} style={{ width: `${Math.round(d.churnProbability * 100)}%` }} />
                         </div>
@@ -267,7 +266,6 @@ export default function DonationsDashboard() {
                     return (
                       <div key={d.supporterId} className="dd-bar-row">
                         <span className="dd-bar-label">{d.name}</span>
-                        <span className={`dd-upgrade-badge dd-upgrade-badge--${tk}`}>{d.upgradeTier}</span>
                         <div className="dd-bar-track">
                           <div className={`dd-bar-fill dd-bar-fill--upgrade-${tk}`} style={{ width: `${Math.round(d.upgradeProbability * 100)}%` }} />
                         </div>
