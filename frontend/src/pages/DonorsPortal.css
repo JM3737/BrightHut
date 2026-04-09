@@ -207,29 +207,27 @@
 }
 .dp-add-btn:hover { background: var(--primary-dark); }
 
-/* ── Donor churn risk ──────────────────────────────────────────────────────── */
+/* ── Insight pills (churn + upgrade summary) ──────────────────────────────── */
 
-.dp-churn-banner {
+.dp-insight-pills {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  padding: 0.5rem 0.75rem;
-  background: #fafafa;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
 }
-.dp-churn-banner-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
+
+.dp-insight-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  white-space: nowrap;
 }
-.dp-churn-banner-dot--risk     { background: #ef4444; }
-.dp-churn-banner-dot--moderate { background: #f59e0b; }
-.dp-churn-banner-sep  { color: var(--border); margin: 0 0.15rem; }
-.dp-churn-banner-note { margin-left: auto; font-size: 0.78rem; color: #aaa; }
+.dp-insight-pill--churn      { background: #fee2e2; color: #991b1b; }
+.dp-insight-pill--moderate   { background: #fef3c7; color: #92400e; }
+.dp-insight-pill--upgrade     { background: #ede9fe; color: #5b21b6; }
+.dp-insight-pill--upgrade-med { background: #e0e7ff; color: #3730a3; }
 
 .dp-churn-row {
   display: flex;
@@ -279,27 +277,6 @@
   color: var(--text-muted);
 }
 
-/* ── Donor upgrade potential ───────────────────────────────────────────────── */
-
-.dp-upgrade-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  padding: 0.5rem 0.75rem;
-  background: #f5f3ff;
-  border: 1px solid #ddd6fe;
-  border-radius: var(--radius-sm);
-}
-.dp-upgrade-banner-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.dp-upgrade-banner-dot--high   { background: #7c3aed; }
-.dp-upgrade-banner-dot--medium { background: #6366f1; }
 
 .dp-upgrade-row {
   display: flex;

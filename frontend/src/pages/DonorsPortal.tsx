@@ -454,24 +454,28 @@ export default function DonorsPortal() {
               </select>
             )}
           </div>
-          {churnSummary && (
-            <div className="dp-churn-banner">
-              <span className="dp-churn-banner-dot dp-churn-banner-dot--risk" />
-              <strong>{churnSummary.atRisk}</strong> donors at risk of lapsing
-              <span className="dp-churn-banner-sep">·</span>
-              <span className="dp-churn-banner-dot dp-churn-banner-dot--moderate" />
-              <strong>{churnSummary.moderate}</strong> moderate
-              <span className="dp-churn-banner-note">Based on giving history · Admin only</span>
-            </div>
-          )}
-          {upgradeSummary && (
-            <div className="dp-upgrade-banner">
-              <span className="dp-upgrade-banner-dot dp-upgrade-banner-dot--high" />
-              <strong>{upgradeSummary.high}</strong> donors ready for upgrade ask
-              <span className="dp-churn-banner-sep">·</span>
-              <span className="dp-upgrade-banner-dot dp-upgrade-banner-dot--medium" />
-              <strong>{upgradeSummary.medium}</strong> medium potential
-              <span className="dp-churn-banner-note">Based on giving trajectory · Admin only</span>
+          {(churnSummary || upgradeSummary) && (
+            <div className="dp-insight-pills">
+              {churnSummary && churnSummary.atRisk > 0 && (
+                <span className="dp-insight-pill dp-insight-pill--churn">
+                  {churnSummary.atRisk} at risk of churn
+                </span>
+              )}
+              {churnSummary && churnSummary.moderate > 0 && (
+                <span className="dp-insight-pill dp-insight-pill--moderate">
+                  {churnSummary.moderate} moderate churn risk
+                </span>
+              )}
+              {upgradeSummary && upgradeSummary.high > 0 && (
+                <span className="dp-insight-pill dp-insight-pill--upgrade">
+                  {upgradeSummary.high} likely to upgrade if asked
+                </span>
+              )}
+              {upgradeSummary && upgradeSummary.medium > 0 && (
+                <span className="dp-insight-pill dp-insight-pill--upgrade-med">
+                  {upgradeSummary.medium} medium upgrade potential
+                </span>
+              )}
             </div>
           )}
         </>
