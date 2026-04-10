@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { getDonations, getDonationAllocations, getInKindDonationItems } from '../api/donations'
 import { getSupporters, getDonorChurnRisk, getDonorUpgradePotential, type DonorChurnEntry, type DonorUpgradeEntry } from '../api/supporters'
-import { insertRow, updateRow } from '../api/tables'
+import { deleteRow, insertRow, updateRow } from '../api/tables'
 import FormModal from '../components/FormModal'
 import PaginationBar from '../components/PaginationBar'
 import type { FieldDef } from '../components/FormModal'
@@ -270,6 +270,13 @@ export default function DonorsPortal() {
     setRefreshKey(k => k + 1)
   }
 
+  const handleDelete = async (tableName: 'donations' | 'donation_allocations' | 'in_kind_donation_items', id: number) => {
+    const ok = window.confirm('Delete this record? This action cannot be undone.')
+    if (!ok) return
+    await deleteRow(tableName, id)
+    setRefreshKey(k => k + 1)
+  }
+
   const renderCard = (r: Row, rk: string) => {
     switch (tab) {
       case 'donations': {
@@ -280,6 +287,12 @@ export default function DonorsPortal() {
               <span className={`type-badge type-${String(r.donation_type ?? '').toLowerCase()}`}>{String(r.donation_type ?? '—')}</span>
               <span className="donor-date">{String(r.donation_date ?? '—')}</span>
               <button className="dp-edit-btn" onClick={() => setFormState({ mode: 'edit-donation', record: r })}>Edit</button>
+              <button
+                className="dp-delete-btn"
+                onClick={() => handleDelete('donations', Number(r.donation_id))}
+              >
+                Delete
+              </button>
             </div>
             <div className="donor-card-body">
               <div className="donor-field"><span className="field-label">Donor</span><span className="donor-name-val">{donorName}</span></div>
@@ -378,6 +391,12 @@ export default function DonorsPortal() {
               <span className="supporter-name">{String(r.program_area ?? '—')}</span>
               <span className="donor-date">{String(r.allocation_date ?? '—')}</span>
               <button className="dp-edit-btn" onClick={() => setFormState({ mode: 'edit-allocation', record: r })}>Edit</button>
+              <button
+                className="dp-delete-btn"
+                onClick={() => handleDelete('donation_allocations', Number(r.allocation_id))}
+              >
+                Delete
+              </button>
             </div>
             <div className="donor-card-body">
               <div className="donor-field"><span className="field-label">Amount</span><span>{formatUsd(phpToUsd(Number(r.amount_allocated ?? 0)))}</span></div>
@@ -394,6 +413,12 @@ export default function DonorsPortal() {
               <span className="supporter-name">{String(r.item_name ?? '—')}</span>
               <span className={`type-badge type-${String(r.received_condition ?? '').toLowerCase()}`}>{String(r.received_condition ?? '—')}</span>
               <button className="dp-edit-btn" onClick={() => setFormState({ mode: 'edit-inkind', record: r })}>Edit</button>
+              <button
+                className="dp-delete-btn"
+                onClick={() => handleDelete('in_kind_donation_items', Number(r.item_id))}
+              >
+                Delete
+              </button>
             </div>
             <div className="donor-card-body">
               <div className="donor-field"><span className="field-label">Category</span><span>{String(r.item_category ?? '—')}</span></div>
