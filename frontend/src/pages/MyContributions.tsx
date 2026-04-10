@@ -23,10 +23,12 @@ function fmtDate(val: unknown) {
 function timeAgo(val: unknown) {
   const s = String(val ?? '').slice(0, 10)
   if (!s || s === 'null') return '—'
-  const d = new Date(s + 'T00:00:00')
+  const d = new Date(s + 'T00:00:00Z') // parse as UTC midnight to match how the server stores dates
   if (isNaN(d.getTime())) return s
-  const days = Math.floor((Date.now() - d.getTime()) / 86_400_000)
-  if (days === 0) return 'Today'
+  const now = new Date()
+  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  const days = Math.round((todayUtc - d.getTime()) / 86_400_000)
+  if (days <= 0) return 'Today'
   if (days === 1) return 'Yesterday'
   return `${days} days ago`
 }

@@ -16,7 +16,7 @@ public class DonationsController : ControllerBase
         _factory = factory;
     }
 
-    public record SubmitDonationRequest(decimal AmountUsd, string? Note, string? DonationDate);
+    public record SubmitDonationRequest(decimal AmountUsd, string? Note);
 
     // POST /api/donations/submit  — donor self-service placeholder payment
     [HttpPost("submit")]
@@ -34,13 +34,7 @@ public class DonationsController : ControllerBase
             return BadRequest(new { error = "Amount must be greater than zero." });
 
         var amountPhp = Math.Round(req.AmountUsd * 56m, 2);
-        // Prefer the client's local date (avoids UTC vs local timezone off-by-one)
-        var today = !string.IsNullOrWhiteSpace(req.DonationDate)
-            && System.DateTime.TryParseExact(req.DonationDate, "yyyy-MM-dd",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None, out _)
-            ? req.DonationDate
-            : DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
         var normalizedEmail = email.Trim().ToLowerInvariant();
 
         using var conn = _factory.CreateConnection();
