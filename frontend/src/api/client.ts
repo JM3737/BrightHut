@@ -57,6 +57,10 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
         const body = await res.json().catch(() => ({}))
         throw new Error(parseApiError(body, res.status, path))
       }
+      // PUT updates often return 204 No Content (e.g. /api/tables/...).
+      if (res.status === 204 || res.status === 205) {
+        return undefined as T
+      }
       const ct = res.headers.get('content-type') ?? ''
       if (!ct.includes('application/json')) {
         throw new Error(

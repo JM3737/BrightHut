@@ -118,7 +118,7 @@ public class TablesController : ControllerBase
     }
 
     [HttpPut("tables/{tableName}/{id:long}")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,staff")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult UpdateRow(string tableName, long id, [FromBody] Dictionary<string, JsonElement> body)
