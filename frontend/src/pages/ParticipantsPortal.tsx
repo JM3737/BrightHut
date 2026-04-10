@@ -10,8 +10,9 @@ import {
   getInterventionPlans,
   getIncidentReports,
   getResidentReadinessScore,
+  getInterventionEffectiveness,
 } from '../api/residents'
-import type { ReadinessScore } from '../api/residents'
+import type { ReadinessScore, InterventionEffectiveness } from '../api/residents'
 import { getSafehouses } from '../api/safehouses'
 import { insertRow } from '../api/tables'
 import FormModal from '../components/FormModal'
@@ -69,12 +70,14 @@ export default function ParticipantsPortal() {
   const [filterCategory, setFilterCategory] = useState('')
   const [filterSafehouse, setFilterSafehouse] = useState('')
   const [filterReadiness, setFilterReadiness] = useState('')
+  const [filterIntervention, setFilterIntervention] = useState('')
   const [showAddResident, setShowAddResident] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [deleteSupporterId, setDeleteSupporterId] = useState('')
   const [deleteMessage, setDeleteMessage] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [readinessScores, setReadinessScores] = useState<Map<number, ReadinessScore>>(new Map())
+  const [interventionScores, setInterventionScores] = useState<Map<number, InterventionEffectiveness>>(new Map())
 
   useEffect(() => {
     Promise.all([
@@ -103,6 +106,15 @@ export default function ParticipantsPortal() {
               if (r.status === 'fulfilled') map.set(activeIds[i], r.value)
             })
             setReadinessScores(map)
+          })
+
+        Promise.allSettled(activeIds.map(id => getInterventionEffectiveness(id)))
+          .then(results => {
+            const map = new Map<number, InterventionEffectiveness>()
+            results.forEach((r, i) => {
+              if (r.status === 'fulfilled') map.set(activeIds[i], r.value)
+            })
+            setInterventionScores(map)
           })
       })
       .catch(() => setError('Failed to load participant data.'))
@@ -139,7 +151,8 @@ export default function ParticipantsPortal() {
     const matchCategory = !filterCategory || r.case_category === filterCategory
     const matchSafehouse = !filterSafehouse || String(r.safehouse_id) === filterSafehouse
     const matchReadiness = !filterReadiness || readinessScores.get(Number(r.resident_id))?.readinessTier === filterReadiness
-    return matchSearch && matchStatus && matchCategory && matchSafehouse && matchReadiness
+    const matchIntervention = !filterIntervention || interventionScores.get(Number(r.resident_id))?.statusLabel === filterIntervention
+    return matchSearch && matchStatus && matchCategory && matchSafehouse && matchReadiness && matchIntervention
   })
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize) || 1)
@@ -148,13 +161,13 @@ export default function ParticipantsPortal() {
 
   useEffect(() => {
     setPage(1)
-  }, [tab, search, filterStatus, filterCategory, filterSafehouse, filterReadiness])
+  }, [tab, search, filterStatus, filterCategory, filterSafehouse, filterReadiness, filterIntervention])
 
   useEffect(() => {
     setPage((p) => Math.min(p, totalPages))
   }, [totalPages])
 
-  const resetFilters = () => { setFilterStatus(''); setFilterCategory(''); setFilterSafehouse(''); setFilterReadiness('') }
+  const resetFilters = () => { setFilterStatus(''); setFilterCategory(''); setFilterSafehouse(''); setFilterReadiness(''); setFilterIntervention('') }
 
   const renderCard = (r: Row, rk: string) => {
     switch (tab) {
@@ -375,6 +388,14 @@ export default function ParticipantsPortal() {
               <option value="High Readiness">High Readiness</option>
               <option value="Moderate Readiness">Moderate Readiness</option>
               <option value="Needs Support">Needs Support</option>
+            </select>
+          )}
+          {interventionScores.size > 0 && (
+            <select className="pp-filter-select" value={filterIntervention} onChange={e => { setFilterIntervention(e.target.value); setPage(1) }}>
+              <option value="">All Effectiveness</option>
+              <option value="IMPROVING">Improving</option>
+              <option value="ON TRACK">On Track</option>
+              <option value="REVIEW NEEDED">Review Needed</option>
             </select>
           )}
           <button className="pp-add-btn" onClick={() => setShowAddResident(true)}>+ Add Resident</button>
